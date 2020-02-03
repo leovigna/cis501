@@ -38,14 +38,12 @@ module lc4_divider_one_iter(input  wire [15:0] i_dividend,
       // define intermediate variables
       wire [15:0] remainder_shift;
       wire [15:0] result;
-      wire [15:0] conditional;
       wire [15:0] quotient_partial;
       wire [15:0] remainder_partial;
 
       // intermediate results
       assign remainder_shift = (i_remainder << 1) | (i_dividend[15]);
       assign result = remainder_shift - i_divisor;
-      assign conditional = remainder_shift < i_divisor;
 
       // We know remainder partial is being selected
       // we know that remainder shift is being selected
@@ -55,7 +53,7 @@ module lc4_divider_one_iter(input  wire [15:0] i_dividend,
       assign o_remainder = i_divisor == 16'b0 ? 16'b0 : remainder_partial;  
 
       // calculate the quotient
-      assign quotient_partial = (i_quotient << 1) | (~(conditional[0]));
+      assign quotient_partial = (i_quotient << 1) | (remainder_shift > i_divisor);
       assign o_quotient = i_divisor == 16'b0 ? 16'b0 : quotient_partial;
       
       // calculate the dividend
