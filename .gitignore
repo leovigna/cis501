@@ -1,3 +1,9 @@
+# Custom
+*.sdb
+*.rlx
+*.pb
+
+# Default
 *.bit
 vivado*.log
 vivado*.jou
