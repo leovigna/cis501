@@ -53,6 +53,7 @@ module lc4_alu_ctl(input  wire [15:0] i_insn,
                   endcase
                   end
             4'd13 : alu_out = 16'd33;
+            4'd15 : alu_out = 16'd37; // trap
         endcase
     end
 
