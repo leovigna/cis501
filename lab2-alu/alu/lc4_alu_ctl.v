@@ -49,7 +49,7 @@ module lc4_alu_ctl(input  wire [15:0] i_insn,
             4'd12 : begin
                   case (i_insn[11])
                         1'd0 : alu_out = 16'd34; // jmpp
-                        1'd1 : alu_out = 16'd34; // jmp
+                        1'd1 : alu_out = 16'd35; // jmp
                   endcase
                   end
             4'd13 : alu_out = 16'd33;
