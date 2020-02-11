@@ -1,4 +1,4 @@
-module lc4_cmp(input  wire [15:0] A, B,
+module lc4_cmp(input  wire [15:0] A, B, i_insn,
                output wire [15:0] CMP_16, CMPU_17, CMPI_18, CMPIU_19);
 
     wire [3:0] CMP_sel, CMPU_sel, CMPI_sel, CMPIU_sel;
@@ -6,8 +6,8 @@ module lc4_cmp(input  wire [15:0] A, B,
     
     assign signedA = $signed(A);
     assign signedB = $signed(B);
-    assign BIMM = {9'd0, B[6:0]};
-    assign signedBIMM  = $signed({{10{B[6]}}, B[5:0]});
+    assign BIMM = {9'b0, i_insn[6:0]};
+    assign signedBIMM  = $signed({{10{i_insn[6]}}, i_insn[5:0]});
 
     //Concatenate comparison results
     assign CMP_sel = { signedA > signedB, signedA == signedB, signedA < signedB };
@@ -19,33 +19,34 @@ module lc4_cmp(input  wire [15:0] A, B,
 
     always @ (*) begin
         case(CMP_sel) 
-            3'b100 : CMP_16_reg = 1;
-            3'b010 : CMP_16_reg = 0;
-            3'b001 : CMP_16_reg = -1;
+            3'b100 : CMP_16_reg = 16'd1;
+            3'b010 : CMP_16_reg = 16'd0;
+            3'b001 : CMP_16_reg = -16'd1;
         endcase
     end
 
     always @ (*) begin
         case(CMPU_sel) 
-            3'b100 : CMPU_17_reg = 1;
-            3'b010 : CMPU_17_reg = 0;
-            3'b001 : CMPU_17_reg = -1;
+            3'b100 : CMPU_17_reg = 16'd1;
+            3'b010 : CMPU_17_reg = 16'd0;
+            3'b001 : CMPU_17_reg = -16'd1;
         endcase
     end
 
     always @ (*) begin
         case(CMPI_sel) 
-            3'b100 : CMPI_18_reg = 1;
-            3'b010 : CMPI_18_reg = 0;
-            3'b001 : CMPI_18_reg = -1;
+            3'b100 : CMPI_18_reg = 16'd1;
+            3'b010 : CMPI_18_reg = 16'd0;
+            3'b001 : CMPI_18_reg = -16'd1;
         endcase
     end
 
+    //{ A > BIMM, A == BIMM, A < BIMM }
     always @ (*) begin
         case(CMPIU_sel) 
-            3'b100 : CMPIU_19_reg = 1;
-            3'b010 : CMPIU_19_reg = 0;
-            3'b001 : CMPIU_19_reg = -1;
+            3'b100 : CMPIU_19_reg = B;
+            3'b010 : CMPIU_19_reg = 16'd0;
+            3'b001 : CMPIU_19_reg = -16'd1;
         endcase
     end
 
