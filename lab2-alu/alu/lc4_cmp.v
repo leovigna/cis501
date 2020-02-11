@@ -17,7 +17,7 @@ module lc4_cmp(input  wire [15:0] A, B, i_insn,
 
     reg [15:0] CMP_16_reg, CMPU_17_reg, CMPI_18_reg, CMPIU_19_reg;
 
-    always @ (*) begin
+    always @ (CMP_sel) begin
         case(CMP_sel) 
             3'b100 : CMP_16_reg = 16'd1;
             3'b010 : CMP_16_reg = 16'd0;
@@ -25,7 +25,7 @@ module lc4_cmp(input  wire [15:0] A, B, i_insn,
         endcase
     end
 
-    always @ (*) begin
+    always @ (CMPU_sel) begin
         case(CMPU_sel) 
             3'b100 : CMPU_17_reg = 16'd1;
             3'b010 : CMPU_17_reg = 16'd0;
@@ -33,7 +33,7 @@ module lc4_cmp(input  wire [15:0] A, B, i_insn,
         endcase
     end
 
-    always @ (*) begin
+    always @ (CMPI_sel) begin
         case(CMPI_sel) 
             3'b100 : CMPI_18_reg = 16'd1;
             3'b010 : CMPI_18_reg = 16'd0;
@@ -42,7 +42,7 @@ module lc4_cmp(input  wire [15:0] A, B, i_insn,
     end
 
     //{ A > BIMM, A == BIMM, A < BIMM }
-    always @ (*) begin
+    always @ (CMPIU_sel) begin
         case(CMPIU_sel) 
             3'b100 : CMPIU_19_reg = B;
             3'b010 : CMPIU_19_reg = 16'd0;
