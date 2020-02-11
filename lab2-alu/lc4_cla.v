@@ -34,7 +34,6 @@ module gp4(input wire [3:0] gin, pin,
 
    assign gout = gin[3] | (pin[3] & gin[2]) | (pin[3] & pin[2] & gin[1]) | (pin[3] & pin[2] & pin[1] & gin[0]);
    assign pout = pin[3] & pin[2] & pin[1] & pin[0];
-   
 endmodule
 
 /**
@@ -103,7 +102,7 @@ module cla16
       .a(a[7:4]),
       .b(b[7:4]),
       .cin(cout_1),
-      .sum(sum[7:3]),
+      .sum(sum[7:4]),
       .cout(cout_2)
    );
 
