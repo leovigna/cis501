@@ -1,5 +1,5 @@
 /* Leo Vigna leovigna
-   Nate Rush <pennkey>
+   Nate Rush narush
  */
 
 `timescale 1ns / 1ps

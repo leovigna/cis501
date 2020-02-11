@@ -1,0 +1,85 @@
+Copyright 1986-2017 Xilinx, Inc. All Rights Reserved.
+------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2017.4 (lin64) Build 2086221 Fri Dec 15 20:54:30 MST 2017
+| Date         : Tue Feb 11 00:59:56 2020
+| Host         : big23 running 64-bit openSUSE Leap 15.1
+| Command      : report_timing -file ./output/post_route_timing_report.txt
+| Design       : lc4_system_alu
+| Device       : 7z020-clg484
+| Speed File   : -1  PRODUCTION 1.11 2014-09-11
+------------------------------------------------------------------------------------
+
+Timing Report
+
+Slack (MET) :             3.594ns  (required time - arrival time)
+  Source:                 write_base_addr_reg[3]/C
+                            (rising edge-triggered cell FDRE clocked by oled_ctrl_clk  {rise@0.000ns fall@5.000ns period=10.000ns})
+  Destination:            m_OLEDCtrl/temp_write_ascii_reg[1]/D
+                            (rising edge-triggered cell FDRE clocked by oled_ctrl_clk  {rise@0.000ns fall@5.000ns period=10.000ns})
+  Path Group:             oled_ctrl_clk
+  Path Type:              Setup (Max at Slow Process Corner)
+  Requirement:            10.000ns  (oled_ctrl_clk rise@10.000ns - oled_ctrl_clk rise@0.000ns)
+  Data Path Delay:        6.389ns  (logic 1.785ns (27.939%)  route 4.604ns (72.061%))
+  Logic Levels:           7  (LUT2=1 LUT6=5 MUXF7=1)
+  Clock Path Skew:        -0.059ns (DCD - SCD + CPR)
+    Destination Clock Delay (DCD):    5.258ns = ( 15.258 - 10.000 ) 
+    Source Clock Delay      (SCD):    5.728ns
+    Clock Pessimism Removal (CPR):    0.412ns
+  Clock Uncertainty:      0.035ns  ((TSJ^2 + TIJ^2)^1/2 + DJ) / 2 + PE
+    Total System Jitter     (TSJ):    0.071ns
+    Total Input Jitter      (TIJ):    0.000ns
+    Discrete Jitter          (DJ):    0.000ns
+    Phase Error              (PE):    0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock oled_ctrl_clk rise edge)
+                                                      0.000     0.000 r  
+    Y9                                                0.000     0.000 r  oled_ctrl_clk (IN)
+                         net (fo=0)                   0.000     0.000    oled_ctrl_clk
+    Y9                   IBUF (Prop_ibuf_I_O)         1.490     1.490 r  oled_ctrl_clk_IBUF_inst/O
+                         net (fo=1, routed)           2.171     3.661    oled_ctrl_clk_IBUF
+    BUFGCTRL_X0Y0        BUFG (Prop_bufg_I_O)         0.101     3.762 r  oled_ctrl_clk_IBUF_BUFG_inst/O
+                         net (fo=192, routed)         1.966     5.728    oled_ctrl_clk_IBUF_BUFG
+    SLICE_X97Y129        FDRE                                         r  write_base_addr_reg[3]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X97Y129        FDRE (Prop_fdre_C_Q)         0.456     6.184 f  write_base_addr_reg[3]/Q
+                         net (fo=128, routed)         1.349     7.534    m_OLEDCtrl/p_0_in[0]
+    SLICE_X106Y128       LUT2 (Prop_lut2_I1_O)        0.119     7.653 f  m_OLEDCtrl/temp_write_ascii[1]_i_29/O
+                         net (fo=3, routed)           0.832     8.485    m_OLEDCtrl/temp_write_ascii[1]_i_29_n_0
+    SLICE_X106Y127       LUT6 (Prop_lut6_I1_O)        0.332     8.817 r  m_OLEDCtrl/temp_write_ascii[1]_i_42/O
+                         net (fo=1, routed)           0.721     9.538    m_OLEDCtrl/temp_write_ascii[1]_i_42_n_0
+    SLICE_X100Y126       LUT6 (Prop_lut6_I5_O)        0.124     9.662 r  m_OLEDCtrl/temp_write_ascii[1]_i_39/O
+                         net (fo=1, routed)           0.426    10.088    m_OLEDCtrl/temp_write_ascii[1]_i_39_n_0
+    SLICE_X100Y127       LUT6 (Prop_lut6_I5_O)        0.124    10.212 f  m_OLEDCtrl/temp_write_ascii[1]_i_21/O
+                         net (fo=1, routed)           0.000    10.212    m_OLEDCtrl/temp_write_ascii[1]_i_21_n_0
+    SLICE_X100Y127       MUXF7 (Prop_muxf7_I0_O)      0.209    10.421 f  m_OLEDCtrl/temp_write_ascii_reg[1]_i_6/O
+                         net (fo=1, routed)           0.467    10.887    m_OLEDCtrl/temp_write_ascii_reg[1]_i_6_n_0
+    SLICE_X102Y128       LUT6 (Prop_lut6_I0_O)        0.297    11.184 f  m_OLEDCtrl/temp_write_ascii[1]_i_2/O
+                         net (fo=1, routed)           0.809    11.993    alu/m11/write_base_addr_reg[5]_0
+    SLICE_X104Y130       LUT6 (Prop_lut6_I0_O)        0.124    12.117 r  alu/m11/temp_write_ascii[1]_i_1/O
+                         net (fo=1, routed)           0.000    12.117    m_OLEDCtrl/D[1]
+    SLICE_X104Y130       FDRE                                         r  m_OLEDCtrl/temp_write_ascii_reg[1]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock oled_ctrl_clk rise edge)
+                                                     10.000    10.000 r  
+    Y9                                                0.000    10.000 r  oled_ctrl_clk (IN)
+                         net (fo=0)                   0.000    10.000    oled_ctrl_clk
+    Y9                   IBUF (Prop_ibuf_I_O)         1.420    11.420 r  oled_ctrl_clk_IBUF_inst/O
+                         net (fo=1, routed)           1.972    13.392    oled_ctrl_clk_IBUF
+    BUFGCTRL_X0Y0        BUFG (Prop_bufg_I_O)         0.091    13.483 r  oled_ctrl_clk_IBUF_BUFG_inst/O
+                         net (fo=192, routed)         1.775    15.258    m_OLEDCtrl/oled_ctrl_clk_IBUF_BUFG
+    SLICE_X104Y130       FDRE                                         r  m_OLEDCtrl/temp_write_ascii_reg[1]/C
+                         clock pessimism              0.412    15.669    
+                         clock uncertainty           -0.035    15.634    
+    SLICE_X104Y130       FDRE (Setup_fdre_C_D)        0.077    15.711    m_OLEDCtrl/temp_write_ascii_reg[1]
+  -------------------------------------------------------------------
+                         required time                         15.711    
+                         arrival time                         -12.117    
+  -------------------------------------------------------------------
+                         slack                                  3.594    
+
+
+
+
