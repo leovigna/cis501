@@ -14,7 +14,7 @@
 `include "./alu/lc4_const.v"
 `include "./alu/lc4_log.v"
 `include "./alu/lc4_shift.v"
-
+`include "./alu/lc4_trap.v"
 
 
 module lc4_alu(input  wire [15:0] i_insn,
@@ -25,7 +25,7 @@ module lc4_alu(input  wire [15:0] i_insn,
 
 
       /*** YOUR CODE HERE ***/
-    wire [15:0] ADD_0, MUL_1, SUB_2, DIV_3, MOD_4, ADDIMM_5, ADDIMM_6, AND_8, NOT_9, OR_10, XOR_11, ANDIMM_12, CMP_16, CMPU_17, CMPI_18, CMPIU_19, SLL_24, SRA_25, SRL_26, CONST_32, HICONST_33, ALU_CTL;
+    wire [15:0] ADD_0, MUL_1, SUB_2, DIV_3, MOD_4, ADDIMM_5, ADDIMM_6, AND_8, NOT_9, OR_10, XOR_11, ANDIMM_12, CMP_16, CMPU_17, CMPI_18, CMPIU_19, SLL_24, SRA_25, SRL_26, CONST_32, HICONST_33, TRAP_37, ALU_CTL;
     
     lc4_alu_ctl m1(.i_insn(i_insn), .alu_ctl(ALU_CTL));
 
@@ -34,13 +34,15 @@ module lc4_alu(input  wire [15:0] i_insn,
     lc4_const m4(.A(i_r1data), .B(i_r2data), .CONST_32(CONST_32), .HICONST_33(HICONST_33));
     lc4_log m5(.A(i_r1data), .B(i_r2data), .AND_8(AND_8), .NOT_9(NOT_9), .OR_10(OR_10), .XOR_11(XOR_11), .ANDIMM_12(ANDIMM_12));
     lc4_shift m6(.A(i_r1data), .B(i_r2data), .SLL_24(SLL_24), .SRA_25(SRA_25), .SRL_26(SRL_26));
+    lc4_trap m7(.i_insn(i_insn), .TRAP_37(TRAP_37));
 
-    lc4_alu_out m7(.ADD_0(ADD_0), .MUL_1(MUL_1), .SUB_2(SUB_2), .DIV_3(DIV_3), 
+    lc4_alu_out m8(.ADD_0(ADD_0), .MUL_1(MUL_1), .SUB_2(SUB_2), .DIV_3(DIV_3), 
         .MOD_4(MOD_4), .ADDIMM_5(ADDIMM_5), .ADDIMM_6(ADDIMM_6), 
         .CMP_16(CMP_16), .CMPU_17(CMPU_17), .CMPI_18(CMPI_18), .CMPIU_19(CMPIU_19), 
         .CONST_32(CONST_32), .HICONST_33(HICONST_33), 
         .AND_8(AND_8), .NOT_9(NOT_9), .OR_10(OR_10), .XOR_11(XOR_11), .ANDIMM_12(ANDIMM_12), 
         .SLL_24(SLL_24), .SRA_25(SRA_25), .SRL_26(SRL_26),
+        .TRAP_37(TRAP_37),
         .ALU_CTL(ALU_CTL), .C(o_result));
 
 endmodule
