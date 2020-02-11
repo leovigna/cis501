@@ -32,8 +32,8 @@ module gp4(input wire [3:0] gin, pin,
    assign cout[1] = gin[1] | (pin[1] & cout[0]);
    assign cout[2] = gin[2] | (pin[2] & cout[1]);
 
-   assign gout = g[3] | (p[3] & g[2]) | (p[3] & p[2] & g[1]) | (p[3] & p[2] & p[1] & g[0]);
-   assign pout = p[3] & p[2] & p[1] & p[0];
+   assign gout = gin[3] | (pin[3] & gin[2]) | (pin[3] & pin[2] & gin[1]) | (pin[3] & pin[2] & pin[1] & gin[0]);
+   assign pout = pin[3] & pin[2] & pin[1] & pin[0];
    
 endmodule
 
@@ -47,7 +47,7 @@ endmodule
 module cla4
   (input wire [3:0]  a, b,
    input wire cin,
-   output wire [3:0] sum
+   output wire [3:0] sum,
    output wire cout);
 
    wire [3:0] gin, pin;
@@ -94,7 +94,7 @@ module cla16
    cla4 c1(
       .a(a[3:0]),
       .b(b[3:0]),
-      .cin(cin)
+      .cin(cin),
       .sum(sum[3:0]),
       .cout(cout_1)
    );
@@ -102,7 +102,7 @@ module cla16
    cla4 c2(
       .a(a[7:4]),
       .b(b[7:4]),
-      .cin(cout_1)
+      .cin(cout_1),
       .sum(sum[7:3]),
       .cout(cout_2)
    );
@@ -110,7 +110,7 @@ module cla16
    cla4 c3(
       .a(a[11:8]),
       .b(b[11:8]),
-      .cin(cout_2)
+      .cin(cout_2),
       .sum(sum[11:8]),
       .cout(cout_3)
    );
@@ -118,7 +118,7 @@ module cla16
    cla4 c4(
       .a(a[15:12]),
       .b(b[15:12]),
-      .cin(cout_3)
+      .cin(cout_3),
       .sum(sum[15:12]),
       .cout(cout_4)
    );
