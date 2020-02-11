@@ -13,7 +13,7 @@ module lc4_alu_ctl(input  wire [15:0] i_insn,
                         3'd1 : alu_out = 16'd1; // mul
                         3'd2 : alu_out = 16'd2; // sub
                         3'd3 : alu_out = 16'd3; // div
-                        default : alu_out = 16'd6; // addi
+                        default : alu_out = 16'd5; // addi
                   endcase
                   end
             4'd2 : begin

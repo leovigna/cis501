@@ -10,39 +10,26 @@ module lc4_arith(input wire [15:0] A, B, ALU_CTL, i_insn,
     
     wire in_carry;
     reg in_carry_reg;
-    always @ (ALU_CTL) begin
-        case(ALU_CTL) 
-            16'd0 : in_carry_reg = 0;
-            16'd2 : in_carry_reg = 1; // SUB
-            16'd5 : in_carry_reg = 0;
-            16'd6 : in_carry_reg = 0;
-        endcase
-    end
-
     wire [15:0] in_B;
     reg [15:0] in_B_reg;
 
-    wire [15:0] B_40, B_50;
-    assign B_40  = $signed({{12{i_insn[4]}}, i_insn[3:0]});
-    assign B_50  = $signed({{11{i_insn[5]}}, i_insn[4:0]});
-
-    always @ (ALU_CTL) begin
+    always @ (*) begin
         case(ALU_CTL) 
             16'd0 : begin
-                in_carry_reg = 0;
+                in_carry_reg = 1'b0;
                 in_B_reg = B; // ADD
                 end
             16'd2 : begin
-                in_carry_reg = 1; 
+                in_carry_reg = 1'b1; 
                 in_B_reg = ~B; // SUB
                 end 
             16'd5 : begin
-                in_carry_reg = 0; 
-                in_B_reg = B_40; // ADDIMM_5
+                in_carry_reg = 1'b0; 
+                in_B_reg = {{12{i_insn[4]}}, i_insn[3:0]}; // ADDIMM_5
                 end
             16'd6 : begin
-                in_carry_reg = 0; 
-                in_B_reg = B_50; // ADDIMM_6
+                in_carry_reg = 1'b0; 
+                in_B_reg = {{11{i_insn[5]}}, i_insn[4:0]}; // ADDIMM_6
                 end
         endcase
     end
@@ -51,7 +38,7 @@ module lc4_arith(input wire [15:0] A, B, ALU_CTL, i_insn,
     assign in_carry = in_carry_reg;
 
     wire [15:0] sum_out;
-    cla16 m2(.a(A), .b(B), .cin(in_carry), .sum(sum_out));
+    cla16 m2(.a(A), .b(in_B), .cin(in_carry), .sum(sum_out));
 
     // Same output
     assign ADD_0 = sum_out;
