@@ -1,4 +1,7 @@
-/* INSERT NAME AND PENNKEY HERE */
+/* 
+    Leo Vigna: leovigna
+    Nate Rush: <INSERT HERE>
+*/
 
 `timescale 1ns / 1ps
 

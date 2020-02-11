@@ -1,4 +1,5 @@
 `include "./lc4_divider.sv"
+`include "../lc4_cla.sv"
 
 module lc4_arith(input wire [15:0] A,
                input wire [15:0]  B,
@@ -34,7 +35,7 @@ module lc4_arith(input wire [15:0] A,
     endcase
 
     wire sum_out[15:0];
-    cla16 mul(.a(A), .b(B), .cin(in_carry), .sum(sum_out));
+    cla16 add(.a(A), .b(B), .cin(in_carry), .sum(sum_out));
 
     // Same output
     assign ADD_0 = sum_out;
