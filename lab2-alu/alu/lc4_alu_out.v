@@ -13,7 +13,7 @@ module lc4_alu_out(
             16'd4 : c_reg = MOD_4;
             16'd5 : c_reg = ADDIMM_5;
             16'd6 : c_reg = ADDIMM_6;
-            16'd7 : c_reg = AND_8;
+            16'd8 : c_reg = AND_8;
             16'd9 : c_reg = NOT_9;
             16'd10 : c_reg = OR_10;
             16'd11 : c_reg = XOR_11;
