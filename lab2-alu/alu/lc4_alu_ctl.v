@@ -1,5 +1,5 @@
 
-module lc4_alu_ctl(input  wire [15:0] i_insn
+module lc4_alu_ctl(input  wire [15:0] i_insn,
                   output wire [15:0] alu_ctl);
 
       case (i_insn[15:12]) 

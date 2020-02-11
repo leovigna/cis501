@@ -1,10 +1,5 @@
-module lc4_log(input  wire [15:0] A,
-               input wire [15:0] B,
-               output  wire [15:0] AND_8,
-               output wire [15:0] NOT_9,
-               output wire [15:0] OR_10,
-               output wire [15:0] XOR_11,
-               output wire [15:0] ANDIMM_12);
+module lc4_log(input  wire [15:0] A, B,
+               output  wire [15:0] AND_8, NOT_9, OR_10, XOR_11, ANDIMM_12);
 
     // TODO SEXT
     assign BIMM = $signed(B[4:0]);

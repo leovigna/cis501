@@ -1,21 +1,13 @@
 `include "./lc4_divider.sv"
 `include "../lc4_cla.sv"
 
-module lc4_arith(input wire [15:0] A,
-               input wire [15:0]  B,
-               input wire [15:0]  ALU_CTL,
-               output wire [15:0]  ADD_0,
-               output wire [15:0]  MUL_1,
-               output wire [15:0]  SUB_2,
-               output wire [15:0]  DIV_3,
-               output wire [15:0]  MOD_4,
-               output wire [15:0] ADDIMM_5,
-               output wire [15:0] ADDIMM_6);
+module lc4_arith(input wire [15:0] A, B, ALU_CTL,
+               output wire [15:0]  ADD_0, MUL_1, SUB_2, DIV_3, MOD_4, ADDIMM_5, ADDIMM_6);
 
 
     assign MUL_1 = A * B;
 
-    lc4_divider div(.i_dividend(A), .i_divisor(B), .o_quotient:(DIV_3), .o_remainder(MOD_4)); 
+    lc4_divider m1(.i_dividend(A), .i_divisor(B), .o_quotient:(DIV_3), .o_remainder(MOD_4)); 
     
 
     wire in_carry;
@@ -35,7 +27,7 @@ module lc4_arith(input wire [15:0] A,
     endcase
 
     wire sum_out[15:0];
-    cla16 add(.a(A), .b(B), .cin(in_carry), .sum(sum_out));
+    cla16 m2(.a(A), .b(B), .cin(in_carry), .sum(sum_out));
 
     // Same output
     assign ADD_0 = sum_out;

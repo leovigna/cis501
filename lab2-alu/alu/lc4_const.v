@@ -1,7 +1,5 @@
-module lc4_const(input  wire [15:0] A,
-               input wire [15:0] B,
-               output wire [15:0] CONST_32,
-               output wire [15:0] HICONST_33);
+module lc4_const(input  wire [15:0] A, B,
+               output wire [15:0] CONST_32, HICONST_33);
 
     assign B_80 = B[8:0];
     assign B_70 = B[7:0];

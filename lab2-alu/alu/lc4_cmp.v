@@ -1,9 +1,5 @@
-module lc4_cmp(input  wire [15:0] A,
-               input wire [15:0] B,
-               output wire [15:0] CMP_16,
-               output wire [15:0] CMPU_17,
-               output wire [15:0] CMPI_18,
-               output wire [15:0] CMPUI_19);
+module lc4_cmp(input  wire [15:0] A, B,
+               output wire [15:0] CMP_16, CMPU_17, CMPI_18, CMPUI_19);
 
     wire CMPU_sel[3:0];
     wire signedA = $signed(A);
