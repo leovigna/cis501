@@ -7,17 +7,17 @@
 
 `default_nettype none
 
-`include "./alu/lc4_alu_ctl.v"
-`include "./alu/lc4_alu_out.v"
-`include "./alu/lc4_arith.v"
-`include "./alu/lc4_cmp.v"
-`include "./alu/lc4_const.v"
-`include "./alu/lc4_log.v"
-`include "./alu/lc4_shift.v"
-`include "./alu/lc4_trap.v"
-`include "./alu/lc4_jmp.v"
-`include "./alu/lc4_br.v"
-`include "./alu/lc4_jsr.v"
+`include "./lc4_alu_ctl.v"
+`include "./lc4_alu_out.v"
+`include "./lc4_arith.v"
+`include "./lc4_cmp.v"
+`include "./lc4_const.v"
+`include "./lc4_log.v"
+`include "./lc4_shift.v"
+`include "./lc4_trap.v"
+`include "./lc4_jmp.v"
+`include "./lc4_br.v"
+`include "./lc4_jsr.v"
 
 module lc4_alu(input  wire [15:0] i_insn,
                input wire [15:0]  i_pc,
