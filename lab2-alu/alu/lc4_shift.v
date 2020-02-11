@@ -5,7 +5,7 @@ module lc4_shift(input  wire [15:0] A, B,
 
     assign B_30 = B[3:0];
     assign SLL_24 = A << B_30;
-    assign SRA_25 = A >>> B_30;
+    assign SRA_25 = $signed(A) >>> B_30;
     assign SRL_26 = A >> B_30;
 
 endmodule
