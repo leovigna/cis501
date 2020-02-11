@@ -6,7 +6,12 @@ module lc4_alu_ctl(input  wire [15:0] i_insn,
       
       always @ * begin
         case (i_insn[15:12]) 
-            4'd0 : alu_out = 16'd32;
+            4'd0 : begin
+                  case (i_insn[11:9])
+                        3'd0 : alu_out = 16'd38; // nop
+                        default : alu_out = 16'd39; // BR_
+                  endcase    
+                  end
             4'd1 : begin
                   case (i_insn[5:3])
                         3'd0 : alu_out = 16'd0; // add
