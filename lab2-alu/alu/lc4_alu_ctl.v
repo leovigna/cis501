@@ -29,7 +29,12 @@ module lc4_alu_ctl(input  wire [15:0] i_insn,
                         2'd3 : alu_out = 16'd19; // cmpiu
                   endcase
                   end
-            4'd4 : alu_out = 16'd6; 
+            4'd4 : begin
+                  case (i_insn[11])
+                        1'd0 : alu_out = 16'd40; // jsrr
+                        1'd1 : alu_out = 16'd41; // jsr
+                  endcase            
+                  end 
             4'd5 : begin
                   case (i_insn[5:3])
                         3'd0 : alu_out = 16'd8; // add
