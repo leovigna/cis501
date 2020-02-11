@@ -1,17 +1,16 @@
 `include "./lc4_divider.v"
 `include "../lc4_cla.v"
 
-module lc4_arith(input wire [15:0] A, B, ALU_CTL,
+module lc4_arith(input wire [15:0] A, B, ALU_CTL, i_insn,
                output wire [15:0]  ADD_0, MUL_1, SUB_2, DIV_3, MOD_4, ADDIMM_5, ADDIMM_6);
 
 
     assign MUL_1 = A * B;
-
     lc4_divider m1(.i_dividend(A), .i_divisor(B), .o_quotient(DIV_3), .o_remainder(MOD_4)); 
     
     wire in_carry;
     reg in_carry_reg;
-    always @ (*) begin
+    always @ (ALU_CTL) begin
         case(ALU_CTL) 
             16'd0 : in_carry_reg = 0;
             16'd2 : in_carry_reg = 1; // SUB
@@ -23,7 +22,11 @@ module lc4_arith(input wire [15:0] A, B, ALU_CTL,
     wire [15:0] in_B;
     reg [15:0] in_B_reg;
 
-    always @ (*) begin
+    wire [15:0] B_40, B_50;
+    assign B_40  = $signed({{12{i_insn[4]}}, i_insn[3:0]});
+    assign B_50  = $signed({{11{i_insn[5]}}, i_insn[4:0]});
+
+    always @ (ALU_CTL) begin
         case(ALU_CTL) 
             16'd0 : begin
                 in_carry_reg = 0;
@@ -35,11 +38,11 @@ module lc4_arith(input wire [15:0] A, B, ALU_CTL,
                 end 
             16'd5 : begin
                 in_carry_reg = 0; 
-                in_B_reg = $signed(B[4:0]); // ADDIMM_5
+                in_B_reg = B_40; // ADDIMM_5
                 end
             16'd6 : begin
                 in_carry_reg = 0; 
-                in_B_reg = $signed(B[5:0]); // ADDIMM_6
+                in_B_reg = B_50; // ADDIMM_6
                 end
         endcase
     end
