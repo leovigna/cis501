@@ -1,5 +1,5 @@
 module lc4_alu_out(
-    input wire [15:0] ADD_0, MUL_1, SUB_2, DIV_3, MOD_4, ADDIMM_5, ADDIMM_6, AND_8, NOT_9, OR_10, XOR_11, ANDIMM_12, CMP_16, CMPU_17, CMPI_18, CMPUI_19, SLL_24, SRA_25, SRL_26, CONST_32, HICONST_33, ALU_CTL,
+    input wire [15:0] ADD_0, MUL_1, SUB_2, DIV_3, MOD_4, ADDIMM_5, ADDIMM_6, AND_8, NOT_9, OR_10, XOR_11, ANDIMM_12, CMP_16, CMPU_17, CMPI_18, CMPIU_19, SLL_24, SRA_25, SRL_26, CONST_32, HICONST_33, ALU_CTL,
     output wire [15:0] C);
 
     reg [15:0] c_reg;
@@ -21,7 +21,7 @@ module lc4_alu_out(
             16'd16 : c_reg = CMP_16;
             16'd17 : c_reg = CMPU_17;
             16'd18 : c_reg = CMPI_18;
-            16'd19 : c_reg = CMPUI_19;
+            16'd19 : c_reg = CMPIU_19;
             16'd24 : c_reg = SLL_24;
             16'd25 : c_reg = SRA_25;
             16'd26 : c_reg = SRL_26;
