@@ -10,8 +10,6 @@
 // disable implicit wire declaration
 `default_nettype none
 
-`include "./lc4_cla.v"
-
 module nzp_unit(
    input wire [15:0] o_alu,
    input wire [2:0]  nzp,
@@ -35,7 +33,7 @@ module memory_unit
    assign o_dmem_addr = (is_store | is_load) ? o_alu : 16'b0;
    assign o_dmem_towrite = is_store ? o_rt : 16'b0;
 
-endmodule;
+endmodule
 
 module lc4_processor
    (input  wire        clk,                // Main clock
