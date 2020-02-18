@@ -10,6 +10,8 @@
 // disable implicit wire declaration
 `default_nettype none
 
+`include "./lc4_cla.v"
+
 module lc4_processor
    (input  wire        clk,                // Main clock
     input  wire        rst,                // Global reset
@@ -63,6 +65,8 @@ module lc4_processor
 
    /* END DO NOT MODIFY THIS CODE */
 
+
+
    // Parse the instruction
    wire [2:0] r1sel, r2sel, wsel;
    wire r1re, r2re, regfile_we, nzp_we, select_pc_plus_one, is_load, is_store, is_branch, is_control_insn; 
@@ -105,15 +109,8 @@ module lc4_processor
    wire [2:0]   next_nzp;
    Nbit_reg #(3, 3'd0) nzp_reg (.in(next_nzp), .out(nzp), .clk(clk), .we(nzp_we), .gwe(gwe), .rst(3'd0));
 
-
-
-   /*******************************
-    * TODO: INSERT YOUR CODE HERE *
-    *******************************/
-
-
-
-
+    // Increment PC
+    //cla16 a(.a(pc), .b(16'd0), .cin(1'b1), .sum(next_pc));
 
    /* Add $display(...) calls in the always block below to
     * print out debug information at the end of every cycle.
@@ -177,3 +174,4 @@ module lc4_processor
    end
 `endif
 endmodule
+   
