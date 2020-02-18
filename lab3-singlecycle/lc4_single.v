@@ -63,9 +63,9 @@ module lc4_processor
 
    /* END DO NOT MODIFY THIS CODE */
 
+   // Parse the instruction
    wire [2:0] r1sel, r2sel, wsel;
    wire r1re, r2re, regfile_we, nzp_we, select_pc_plus_one, is_load, is_store, is_branch, is_control_insn; 
-
    lc4_decoder d(
       .insn(i_cur_insn),
       .r1re(r1re),
@@ -82,10 +82,30 @@ module lc4_processor
       .is_control_insn(is_control_insn)
    );
 
-   always @(posedge clk) begin
-      
+   wire [15:0] rs_data; // read from rs by reading this
+   wire [15:0] rt_data; // read from rt by reading this
+   wire [15:0] i_wdata; // write to data file by assigning this
 
-   end
+   // make the registers
+   lc4_regfile r(
+      .clk(clk),
+      .gwe(gwe),
+      .rst(rst),
+      .i_rs(r1sel),      // rs selector
+      .o_rs_data(rs_data), // rs contents
+      .i_rt(r2sel),      // rt selector
+      .o_rt_data(rt_data), // rt contents
+      .i_rd(wsel),      // rd selector
+      .i_wdata(i_wdata),   // data to write
+      .i_rd_we(regfile_we)
+   );
+
+   // Make the NZP register
+   wire [2:0]   nzp; // where you read the current nzp
+   wire [2:0]   next_nzp;
+   Nbit_reg #(3, 3'd0) nzp_reg (.in(next_nzp), .out(nzp), .clk(clk), .we(nzp_we), .gwe(gwe), .rst(3'd0));
+
+
 
    /*******************************
     * TODO: INSERT YOUR CODE HERE *
