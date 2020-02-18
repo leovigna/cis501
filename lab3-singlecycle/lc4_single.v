@@ -111,6 +111,23 @@ module lc4_processor
 
     // Increment PC
     //cla16 a(.a(pc), .b(16'd0), .cin(1'b1), .sum(next_pc));
+   
+   //assign test_cur_pc = 16'h9010;
+   assign test_cur_pc = pc;
+   assign test_cur_insn = i_cur_insn;
+   assign test_regfile_we = regfile_we;
+   assign test_regfile_wsel = wsel;
+   assign test_regfile_data = i_wdata;
+   assign test_nzp_we = nzp_we;
+   
+
+   /*******************************
+    * TODO: INSERT YOUR CODE HERE *
+    *******************************/
+
+
+
+
 
    /* Add $display(...) calls in the always block below to
     * print out debug information at the end of every cycle.
@@ -128,7 +145,7 @@ module lc4_processor
     */
 `ifndef NDEBUG
    always @(posedge gwe) begin
-      // $display("%d %h %h %h %h %h", $time, f_pc, d_pc, e_pc, m_pc, test_cur_pc);
+      //$display("%d %h", $time, pc);
       // if (o_dmem_we)
       //   $display("%d STORE %h <= %h", $time, o_dmem_addr, o_dmem_towrite);
 
