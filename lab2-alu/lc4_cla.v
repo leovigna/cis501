@@ -123,3 +123,17 @@ module cla16
    );
 
 endmodule
+
+
+/** Lab 2 Extra Credit, see details at
+  https://github.com/upenn-acg/cis501/blob/master/lab2-alu/lab2-cla.md#extra-credit
+ If you are not doing the extra credit, you should leave this module empty.
+ */
+module gpn
+  #(parameter N = 4)
+  (input wire [N-1:0] gin, pin,
+   input wire  cin,
+   output wire gout, pout,
+   output wire [N-2:0] cout);
+ 
+endmodule
