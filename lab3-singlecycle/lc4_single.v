@@ -20,6 +20,18 @@ module nzp_unit(
    wire neg = (o_alu[15] == 1);
    
    assign next_nzp = {neg, zero, pos};
+endmodule;
+
+
+module memory_unit
+  (input wire is_store, is_load, 
+   input wire o_alu,
+   output wire o_dmem_we, 
+   output wire [15:0] o_dmem_addr, o_dmem_towrite, o_rt);
+
+   assign o_dmem_we = is_store;
+   assign o_dmem_addr = (is_store | is_load) ? o_alu : 16'b0;
+   assign o_dmem_towrite = is_store ? o_rt : 16'b0;
 
 endmodule
 
@@ -147,12 +159,15 @@ module lc4_processor
    );
 
    // write to the register
-   assign i_wdata = is_load ? i_cur_dmem_data : select_pc_plus_one ? pc_plus_one : o_alu;
+   assign i_wdata = regfile_we ? (is_load ? i_cur_dmem_data : (select_pc_plus_one ? pc_plus_one : o_alu)) : 16'd0;
 
    // Write to the memory
-   assign o_dmem_we = is_store;
-   assign o_dmem_addr = (is_store | is_load) ? o_alu : 16'b0;
-   assign o_dmem_towrite = is_store ? o_rt : 16'b0;
+   memory_unit m(
+      .is_store(is_store), .is_load(is_load), 
+      .o_alu(o_alu),
+      .o_dmem_we(o_dmem_we),
+      .o_dmem_addr(o_dmem_addr), .o_dmem_towrite(o_dmem_towrite), .o_rt(o_rt)
+   );
 
    // branch logic!
    wire nzp_result = ((nzp & i_cur_insn[11:9]) != 3'b0);
