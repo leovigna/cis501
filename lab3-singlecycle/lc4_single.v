@@ -17,10 +17,10 @@ module nzp_unit(
    input wire [2:0]  nzp,
    output wire [2:0] next_nzp);
 
-   wire pos = (o_alu[15] == 0);
+   wire neg = o_alu[15];
    wire zero = (o_alu == 16'b0);
-   wire neg = (o_alu[15] == 1);
-   
+   wire pos = (!neg & !zero);
+
    assign next_nzp = {neg, zero, pos};
 endmodule;
 
