@@ -82,8 +82,7 @@ module lc4_processor
       .is_control_insn(is_control_insn)
    );
 
-   wire [15:0] rs_data; // read from rs by reading this
-   wire [15:0] rt_data; // read from rt by reading this
+   wire [15:0] o_rs, o_rt;
    wire [15:0] i_wdata; // write to data file by assigning this
 
    // make the registers
@@ -103,9 +102,29 @@ module lc4_processor
    // Make the NZP register
    wire [2:0]   nzp; // where you read the current nzp
    wire [2:0]   next_nzp;
-   Nbit_reg #(3, 3'd0) nzp_reg (.in(next_nzp), .out(nzp), .clk(clk), .we(nzp_we), .gwe(gwe), .rst(3'd0));
+   Nbit_reg #(3, 3'd0) nzp_reg (
+      .in(next_nzp), 
+      .out(nzp), 
+      .clk(clk), 
+      .we(nzp_we), 
+      .gwe(gwe), 
+      .rst(rst)
+   );
 
-   
+   wire [15:0] o_alu;
+
+   // Run the ALU
+   lc4_alu alu(
+      .i_insn(i_cur_insn), 
+      .i_pc(pc), 
+      .i_r1data(o_rs), 
+      .i_r2data(o_rt), 
+      .o_result(o_alu)
+   );
+
+
+
+   // Finially, assign all the test benches
    //assign test_cur_pc = 16'h9010;
    assign test_cur_pc = pc;
    assign test_cur_insn = i_cur_insn;
