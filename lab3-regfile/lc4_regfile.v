@@ -6,6 +6,8 @@
  *
  */
 
+`include "./register.v"
+
 `timescale 1ns / 1ps
 
 // Prevent implicit wire declaration
@@ -24,8 +26,22 @@ module lc4_regfile #(parameter n = 16)
     input  wire         i_rd_we    // write enable
     );
 
-   /***********************
-    * TODO YOUR CODE HERE *
-    ***********************/
+    // make 8 output wires; one for each reg
+    wire [n-1:0] regs [7:0];
+
+    genvar i;
+    for (i = 0; i < 8; i = i + 1) begin
+        Nbit_reg #(n) r(
+            .in(i_wdata),
+            .out(regs[i]),
+            .clk(clk),
+            .we(i_rd_we & (i == i_rd)),
+            .gwe(gwe),
+            .rst(rst)
+        );
+    end
+
+    assign o_rs_data = regs[i_rs];
+    assign o_rt_data = regs[i_rt];
 
 endmodule
