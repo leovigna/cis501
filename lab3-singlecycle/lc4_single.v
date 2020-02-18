@@ -20,7 +20,7 @@ module nzp_unit(
    wire pos = (!neg & !zero);
 
    assign next_nzp = {neg, zero, pos};
-endmodule;
+endmodule
 
 
 module memory_unit
