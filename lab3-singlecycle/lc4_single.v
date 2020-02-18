@@ -63,10 +63,30 @@ module lc4_processor
 
    /* END DO NOT MODIFY THIS CODE */
 
+   wire [2:0] r1sel, r2sel, wsel;
+   wire r1re, r2re, regfile_we, nzp_we, select_pc_plus_one, is_load, is_store, is_branch, is_control_ins; 
+
+   lc4_decoder d(
+      .insn(i_cur_insn)
+      .r1re(r1re),
+      .r1sel(r1sel),
+      .r2re(r2re),
+      .r2sel(r2sel),
+      .wsel(wsel),
+      .regfile_we(regfile_we),
+      .nzp_we(nzp_we),
+      .select_pc_plus_one(select_pc_plus_one),
+      .is_load(is_load),
+      .is_store(is_store),
+      .is_branch(is_branch),
+      .is_control_insn(is_control_insn)
+   );
 
    /*******************************
     * TODO: INSERT YOUR CODE HERE *
     *******************************/
+
+
 
 
 
