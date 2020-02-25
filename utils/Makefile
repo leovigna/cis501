@@ -3,7 +3,7 @@ SYNTH_SOURCES=mux.v
 TOP_SYNTH_MODULE=mux
 
 # testbench files
-TESTBENCH=testbench_lc4_divider.v
-TOP_TESTBENCH_MODULE=test_divider
+TESTBENCH=muxtestbench.v
+TOP_TESTBENCH_MODULE=muxtestbench
 
 include ../common/make/vivado.mk

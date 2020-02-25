@@ -1,0 +1,27 @@
+$date
+   Mon Feb 24 18:19:04 2020
+$end
+$version
+  2017.4
+$end
+$timescale
+  1ps
+$end
+$scope module muxtestbench $end
+$var reg 16 ! in1 [15:0] $end
+$var reg 16 " in2 [15:0] $end
+$var reg 16 # in3 [15:0] $end
+$var reg 16 $ in4 [15:0] $end
+$var reg 2 % sel1 [1:0] $end
+$var reg 2 & sel2 [1:0] $end
+$upscope $end
+$enddefinitions $end
+#0
+$dumpvars
+bx !
+bx "
+bx #
+bx $
+bx %
+bx &
+$end
