@@ -171,8 +171,10 @@ module lc4_processor
 
    // branch logic!
    wire nzp_result = ((nzp & i_cur_insn[11:9]) != 3'b0);
-   wire jmp_tgt = nzp_result ? o_alu : pc_plus_one; 
-   assign next_pc = is_branch ? jmp_tgt : pc_plus_one;
+   
+   // New
+   wire [15:0] jmp_tgt = is_control_insn ? o_alu : pc_plus_one;
+   assign next_pc = (is_branch & nzp_result) ? o_alu : jmp_tgt;
 
    // assign the current pc
    assign o_cur_pc = pc;
