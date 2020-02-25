@@ -1,4 +1,7 @@
-/* TODO: INSERT NAME AND PENNKEY HERE */
+/*
+    Leo Vigna: leovigna
+    Nate Rush: narush
+*/
 
 /**
  * @param a first 1-bit input

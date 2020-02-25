@@ -1,8 +1,8 @@
 /* 
     Leo Vigna: leovigna
-    Nate Rush: <INSERT HERE>
+    Nate Rush: narush
 */
-
+ 
 `timescale 1ns / 1ps
 
 `default_nettype none
