@@ -11,12 +11,12 @@
 `default_nettype none
 
 module nzp_unit(
-   input wire [15:0] o_alu,
+   input wire [15:0] i_wdata,
    input wire [2:0]  nzp,
    output wire [2:0] next_nzp);
 
-   wire neg = o_alu[15];
-   wire zero = (o_alu == 16'b0);
+   wire neg = i_wdata[15];
+   wire zero = (i_wdata == 16'b0);
    wire pos = (!neg & !zero);
 
    assign next_nzp = {neg, zero, pos};
@@ -25,9 +25,9 @@ endmodule
 
 module memory_unit
   (input wire is_store, is_load, 
-   input wire o_alu,
+   input wire [15:0] o_alu, o_rt,
    output wire o_dmem_we, 
-   output wire [15:0] o_dmem_addr, o_dmem_towrite, o_rt);
+   output wire [15:0] o_dmem_addr, o_dmem_towrite);
 
    assign o_dmem_we = is_store;
    assign o_dmem_addr = (is_store | is_load) ? o_alu : 16'b0;
@@ -153,13 +153,13 @@ module lc4_processor
 
    // Update the NZP bits from the ALU
    nzp_unit n(
-      .o_alu(o_alu),
+      .i_wdata(i_wdata),
       .nzp(nzp),
       .next_nzp(next_nzp)
    );
 
    // write to the register
-   assign i_wdata = regfile_we ? (is_load ? i_cur_dmem_data : (select_pc_plus_one ? pc_plus_one : o_alu)) : 16'd0;
+   assign i_wdata = is_load ? i_cur_dmem_data : (select_pc_plus_one ? pc_plus_one : o_alu);
 
    // Write to the memory
    memory_unit m(
@@ -185,13 +185,13 @@ module lc4_processor
    assign test_cur_insn = i_cur_insn;
    assign test_regfile_we = regfile_we;
    assign test_regfile_wsel = wsel;
-   assign test_regfile_data = i_wdata;
+   assign test_regfile_data = regfile_we ? i_wdata : 16'd0;
    assign test_nzp_we = nzp_we;
    assign test_nzp_new_bits = next_nzp;
    assign test_dmem_we = is_store;
    assign test_dmem_we = o_dmem_we;
    assign test_dmem_addr = o_dmem_addr;
-   assign test_dmem_data = o_dmem_towrite;
+   assign test_dmem_data = is_store ? o_dmem_towrite : (is_load ? i_cur_dmem_data : 16'd0) ;
 
    /*******************************
     * TODO: INSERT YOUR CODE HERE *
