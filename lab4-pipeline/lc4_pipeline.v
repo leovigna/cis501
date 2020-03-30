@@ -136,43 +136,42 @@ module lc4_processor
    // VARIABLE DECLARATIONS
    wire [15:0] f_insn, d_insn, x_insn, m_insn, w_insn; // Instructions
    wire [15:0] f_pc, d_pc, x_pc, m_pc, w_pc; // program counters
+   wire [1:0]  f_stall, d_stall, x_stall, m_stall, w_stall; // all the stall counters
+   wire                 d_nzp_we, x_nzp_we, m_nzp_we, w_nzp_we; // write enable
+
 
    /*************** FETCH STAGE ***************/
-   // F: Fetch Stage
+   wire [15:0] next_pc;
+
    wire [15:0] f_dmem_data;
-   wire [1:0] f_stall;
-   wire [2:0] f_nzp;
    //Test Signals
-   assign o_cur_pc = f_pc; 
    // We start the stall up here so it moves with the instruction!
    // default to no stall
    assign f_stall = 0;
    assign f_insn = i_cur_insn;
    assign f_pc = x_pc;
    assign f_dmem_data = i_cur_dmem_data;
-   assign f_nzp = w_nzp;
+
+   assign o_cur_pc = f_pc; 
+
 
    /*************** DECODE STAGE ***************/
    // Parse the instruction
    // D: Decode Stage
    // Previous stages
    wire [15:0] d_dmem_data;
-   wire [1:0] d_stall;
-   wire [2:0] d_nzp;
 
    // Computed in D
    wire [2:0] d_r1sel, d_r2sel, d_wsel;
-   wire d_r1re, d_r2re, d_regfile_we, d_nzp_we, d_select_pc_plus_one, d_is_load, d_is_store, d_is_branch, d_is_control_insn;
+   wire d_r1re, d_r2re, d_regfile_we, d_select_pc_plus_one, d_is_load, d_is_store, d_is_branch, d_is_control_insn;
    wire [15:0] d_rs, d_rt;
    wire [15:0] d_rs_default, d_rt_default;
 
    // Load Pipeline data
    insn_pipeline FD_pipeline( 
       .in_insn(f_insn), .in_pc(f_pc), .in_dmem_data(f_dmem_data),
-      .in_nzp(f_nzp),
       .in_stall(f_stall),
       .out_insn(d_insn), .out_pc(d_pc), .out_dmem_data(d_dmem_data),
-      .out_nzp(d_nzp),
       .out_stall(d_stall),
       .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst)
    );
@@ -222,12 +221,11 @@ module lc4_processor
    wire [15:0] x_dmem_data;
    wire [2:0] x_nzp;
    wire [2:0] x_r1sel, x_r2sel, x_wsel;
-   wire x_r1re, x_r2re, x_regfile_we, x_nzp_we, x_select_pc_plus_one, x_is_load, x_is_store, x_is_branch, x_is_control_insn; 
+   wire x_r1re, x_r2re, x_regfile_we, x_select_pc_plus_one, x_is_load, x_is_store, x_is_branch, x_is_control_insn; 
  
    // Computed during X
    wire [15:0] x_pc_plus_one, x_rs, x_rt, x_alu, x_wdata, x_next_pc;
    wire [15:0] x_rs_default, x_rt_default;
-   wire [1:0] x_stall;
    wire [1:0] x_stall_default;
 
    //TODO
@@ -305,11 +303,10 @@ module lc4_processor
    wire [15:0] m_dmem_data;
    wire [2:0] m_nzp;
    wire [2:0] m_r1sel, m_r2sel, m_wsel;
-   wire m_r1re, m_r2re, m_regfile_we, m_nzp_we, m_select_pc_plus_one, m_is_load, m_is_store, m_is_branch, m_is_control_insn; 
+   wire m_r1re, m_r2re, m_regfile_we, m_select_pc_plus_one, m_is_load, m_is_store, m_is_branch, m_is_control_insn; 
    wire [15:0] m_rs, m_rt, m_alu, m_wdata, m_next_pc;
    wire m_nzp_result;
    wire [15:0] m_rs_default, m_rt_default;
-   wire [1:0] m_stall;
 
    // Computed in M
    wire m_dmem_we;
@@ -376,13 +373,12 @@ module lc4_processor
    wire [15:0] w_dmem_data;
    wire [2:0] w_nzp;
    wire [2:0] w_r1sel, w_r2sel, w_wsel;
-   wire w_r1re, w_r2re, w_regfile_we, w_nzp_we, w_select_pc_plus_one, w_is_load, w_is_store, w_is_branch, w_is_control_insn; 
+   wire w_r1re, w_r2re, w_regfile_we, w_select_pc_plus_one, w_is_load, w_is_store, w_is_branch, w_is_control_insn; 
    wire [15:0] w_rs, w_rt, w_alu, w_wdata, w_next_pc;
    wire w_nzp_result;
    wire w_dmem_we;
    wire [15:0] w_dmem_addr, w_dmem_towrite;
    wire [2:0] w_next_nzp;
-   wire [1:0] w_stall;
 
    // Computed
    insn_pipeline MW_pipeline( 
