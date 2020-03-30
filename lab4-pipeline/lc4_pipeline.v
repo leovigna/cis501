@@ -203,7 +203,6 @@ module lc4_processor
    // default to no stall
    assign f_stall = 0;
 
-   
 
    insn_pipeline Input_F_pipeline( 
        .in_insn(i_cur_insn), .in_pc(x_pc), .in_dmem_data(i_cur_dmem_data),
