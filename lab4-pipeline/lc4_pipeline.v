@@ -32,65 +32,6 @@ module memory_unit
 
 endmodule
 
-/*
-      .in_insn(i_cur_insn), .in_pc(x_pc), .in_dmem_data(i_cur_dmem_data),
-      .in_nzp(w_next_nzp),
-      .out_insn(f_insn), .out_pc(f_pc), .out_dmem_data(f_dmem_data), 
-      .out_nzp(f_nzp),
-      .we(1'b1), .gwe(gwe), .rst(rst)
-
-module fetch_pipeline
-    (
-    input  wire [15:0] in_insn, in_pc, in_dmem_data,
-    input  wire [2:0] in_nzp,
-    output  wire [15:0] out_insn, out_pc, out_dmem_data,
-    output  wire [2:0] out_nzp,
-    output wire out_nzp_result,
-    output  wire out_r1re, out_r2re, out_regfile_we, out_nzp_we, out_select_pc_plus_one, out_is_load, out_is_store, out_is_branch, out_is_control_insn,
-    output wire out_dmem_we,
-    output wire [15:0] out_dmem_addr, out_dmem_towrite,
-    output wire [1:0] out_stall,
-    input  wire         clk,
-    input  wire         we,
-    input  wire         gwe,
-    input  wire         rst
-    );
-
-   Nbit_reg #(16, 16'h0000) insn_reg (.in(in_insn), .out(out_insn), .clk(clk), .we(we), .gwe(gwe), .rst(rst));
-   Nbit_reg #(16, 16'h8200) pc_reg (.in(in_pc), .out(out_pc), .clk(clk), .we(we), .gwe(gwe), .rst(rst));
-   Nbit_reg #(16, 16'h0000) dmem_data_reg (.in(in_dmem_data), .out(out_dmem_data), .clk(clk), .we(we), .gwe(gwe), .rst(rst));
-   Nbit_reg #(16, 0) rt_reg (.in(in_rs), .out(out_rs), .clk(clk), .we(we), .gwe(gwe), .rst(rst));
-   Nbit_reg #(16, 0) rs_reg (.in(in_rt), .out(out_rt), .clk(clk), .we(we), .gwe(gwe), .rst(rst));
-   Nbit_reg #(16, 0) alu_reg (.in(in_alu), .out(out_alu), .clk(clk), .we(we), .gwe(gwe), .rst(rst));
-   Nbit_reg #(16, 0) wdata_reg (.in(in_wdata), .out(out_wdata), .clk(clk), .we(we), .gwe(gwe), .rst(rst));
-   Nbit_reg #(16, 0) jmp_tgt_reg (.in(in_jmp_tgt), .out(out_jmp_tgt), .clk(clk), .we(we), .gwe(gwe), .rst(rst));
-   Nbit_reg #(16, 16'h8200) next_pc_reg (.in(in_next_pc), .out(out_next_pc), .clk(clk), .we(we), .gwe(gwe), .rst(rst));
-   Nbit_reg #(16, 0) dmem_addr_reg (.in(in_dmem_addr), .out(out_dmem_addr), .clk(clk), .we(we), .gwe(gwe), .rst(rst));
-   Nbit_reg #(16, 0) dmem_towrite_reg (.in(in_dmem_towrite), .out(out_dmem_towrite), .clk(clk), .we(we), .gwe(gwe), .rst(rst));
-
-
-   Nbit_reg #(3, 0) r1sel_reg (.in(in_r1sel), .out(out_r1sel), .clk(clk), .we(we), .gwe(gwe), .rst(rst));
-   Nbit_reg #(3, 0) r2sel_reg (.in(in_r2sel), .out(out_r2sel), .clk(clk), .we(we), .gwe(gwe), .rst(rst));
-   Nbit_reg #(3, 0) wsel_reg (.in(in_wsel), .out(out_wsel), .clk(clk), .we(we), .gwe(gwe), .rst(rst));
-   Nbit_reg #(3, 0) nzp_reg (.in(in_nzp), .out(out_nzp), .clk(clk), .we(we), .gwe(gwe), .rst(rst));
-   Nbit_reg nzp_result_reg (.in(in_nzp_result), .out(out_nzp_result), .clk(clk), .we(we), .gwe(gwe), .rst(rst));
-
-   Nbit_reg r1re_reg (.in(in_r1re), .out(out_r1re), .clk(clk), .we(we), .gwe(gwe), .rst(rst));
-   Nbit_reg r2re_reg (.in(in_r2re), .out(out_r2re), .clk(clk), .we(we), .gwe(gwe), .rst(rst));
-   Nbit_reg regfile_we_reg (.in(in_regfile_we), .out(out_regfile_we), .clk(clk), .we(we), .gwe(gwe), .rst(rst));
-   
-   Nbit_reg nzp_we_reg (.in(in_nzp_we), .out(out_nzp_we), .clk(clk), .we(we), .gwe(gwe), .rst(rst));
-   Nbit_reg select_pc_plus_one_reg (.in(in_select_pc_plus_one), .out(out_select_pc_plus_one), .clk(clk), .we(we), .gwe(gwe), .rst(rst));
-   Nbit_reg is_load_reg (.in(in_is_load), .out(out_is_load), .clk(clk), .we(we), .gwe(gwe), .rst(rst));
-   Nbit_reg is_store_reg (.in(in_is_store), .out(out_is_store), .clk(clk), .we(we), .gwe(gwe), .rst(rst));
-   Nbit_reg is_branch_reg (.in(in_is_branch), .out(out_is_branch), .clk(clk), .we(we), .gwe(gwe), .rst(rst));
-   Nbit_reg is_control_insn_reg (.in(in_is_control_insn), .out(out_is_control_insn), .clk(clk), .we(we), .gwe(gwe), .rst(rst));
-
-   Nbit_reg dmem_we_reg (.in(in_dmem_we), .out(out_dmem_we), .clk(clk), .we(we), .gwe(gwe), .rst(rst));
-
-   Nbit_reg #(2, 2) stall_reg (.in(in_stall), .out(out_stall), .clk(clk), .we(we), .gwe(gwe), .rst(rst));
-endmodule
-*/
 
 module insn_pipeline
     (
@@ -131,20 +72,20 @@ module insn_pipeline
    Nbit_reg #(3, 0) r2sel_reg (.in(in_r2sel), .out(out_r2sel), .clk(clk), .we(we), .gwe(gwe), .rst(rst));
    Nbit_reg #(3, 0) wsel_reg (.in(in_wsel), .out(out_wsel), .clk(clk), .we(we), .gwe(gwe), .rst(rst));
    Nbit_reg #(3, 0) nzp_reg (.in(in_nzp), .out(out_nzp), .clk(clk), .we(we), .gwe(gwe), .rst(rst));
-   Nbit_reg nzp_result_reg (.in(in_nzp_result), .out(out_nzp_result), .clk(clk), .we(we), .gwe(gwe), .rst(rst));
+   Nbit_reg #(1, 0) nzp_result_reg (.in(in_nzp_result), .out(out_nzp_result), .clk(clk), .we(we), .gwe(gwe), .rst(rst));
 
-   Nbit_reg r1re_reg (.in(in_r1re), .out(out_r1re), .clk(clk), .we(we), .gwe(gwe), .rst(rst));
-   Nbit_reg r2re_reg (.in(in_r2re), .out(out_r2re), .clk(clk), .we(we), .gwe(gwe), .rst(rst));
-   Nbit_reg regfile_we_reg (.in(in_regfile_we), .out(out_regfile_we), .clk(clk), .we(we), .gwe(gwe), .rst(rst));
+   Nbit_reg #(1, 0) r1re_reg (.in(in_r1re), .out(out_r1re), .clk(clk), .we(we), .gwe(gwe), .rst(rst));
+   Nbit_reg #(1, 0) r2re_reg (.in(in_r2re), .out(out_r2re), .clk(clk), .we(we), .gwe(gwe), .rst(rst));
+   Nbit_reg #(1, 0) regfile_we_reg (.in(in_regfile_we), .out(out_regfile_we), .clk(clk), .we(we), .gwe(gwe), .rst(rst));
    
-   Nbit_reg nzp_we_reg (.in(in_nzp_we), .out(out_nzp_we), .clk(clk), .we(we), .gwe(gwe), .rst(rst));
-   Nbit_reg select_pc_plus_one_reg (.in(in_select_pc_plus_one), .out(out_select_pc_plus_one), .clk(clk), .we(we), .gwe(gwe), .rst(rst));
-   Nbit_reg is_load_reg (.in(in_is_load), .out(out_is_load), .clk(clk), .we(we), .gwe(gwe), .rst(rst));
-   Nbit_reg is_store_reg (.in(in_is_store), .out(out_is_store), .clk(clk), .we(we), .gwe(gwe), .rst(rst));
-   Nbit_reg is_branch_reg (.in(in_is_branch), .out(out_is_branch), .clk(clk), .we(we), .gwe(gwe), .rst(rst));
-   Nbit_reg is_control_insn_reg (.in(in_is_control_insn), .out(out_is_control_insn), .clk(clk), .we(we), .gwe(gwe), .rst(rst));
+   Nbit_reg #(1, 0) nzp_we_reg (.in(in_nzp_we), .out(out_nzp_we), .clk(clk), .we(we), .gwe(gwe), .rst(rst));
+   Nbit_reg #(1, 0) select_pc_plus_one_reg (.in(in_select_pc_plus_one), .out(out_select_pc_plus_one), .clk(clk), .we(we), .gwe(gwe), .rst(rst));
+   Nbit_reg #(1, 0) is_load_reg (.in(in_is_load), .out(out_is_load), .clk(clk), .we(we), .gwe(gwe), .rst(rst));
+   Nbit_reg #(1, 0) is_store_reg (.in(in_is_store), .out(out_is_store), .clk(clk), .we(we), .gwe(gwe), .rst(rst));
+   Nbit_reg #(1, 0) is_branch_reg (.in(in_is_branch), .out(out_is_branch), .clk(clk), .we(we), .gwe(gwe), .rst(rst));
+   Nbit_reg #(1, 0) is_control_insn_reg (.in(in_is_control_insn), .out(out_is_control_insn), .clk(clk), .we(we), .gwe(gwe), .rst(rst));
 
-   Nbit_reg dmem_we_reg (.in(in_dmem_we), .out(out_dmem_we), .clk(clk), .we(we), .gwe(gwe), .rst(rst));
+   Nbit_reg #(1, 0) dmem_we_reg (.in(in_dmem_we), .out(out_dmem_we), .clk(clk), .we(we), .gwe(gwe), .rst(rst));
 
    Nbit_reg #(2, 2) stall_reg (.in(in_stall), .out(out_stall), .clk(clk), .we(we), .gwe(gwe), .rst(rst));
 
@@ -195,31 +136,26 @@ module lc4_processor
 /*************** FETCH ***************/
    // F: Fetch Stage
    wire [15:0] f_insn, f_pc, f_dmem_data;
-   wire [2:0] f_nzp;
    wire [1:0] f_stall;
+   wire [2:0] f_nzp;
    //Test Signals
    assign o_cur_pc = f_pc; 
    // We start the stall up here so it moves with the instruction!
    // default to no stall
    assign f_stall = 0;
+   assign f_insn = i_cur_insn;
+   assign f_pc = x_pc;
+   assign f_dmem_data = i_cur_dmem_data;
+   assign f_nzp = w_nzp;
 
-
-   insn_pipeline Input_F_pipeline( 
-       .in_insn(i_cur_insn), .in_pc(x_pc), .in_dmem_data(i_cur_dmem_data),
-       .in_nzp(w_next_nzp),
-       .in_stall(f_stall),
-       .out_insn(f_insn), .out_pc(f_pc), .out_dmem_data(f_dmem_data),
-       .out_nzp(f_nzp),
-       .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst)
-   );
 
 /*************** DECODE ***************/
    // Parse the instruction
    // D: Decode Stage
    // Previous stages
    wire [15:0] d_insn, d_pc, d_dmem_data;
-   wire [2:0] d_nzp;
    wire [1:0] d_stall;
+   wire [2:0] d_nzp;
 
    // Computed in D
    wire [2:0] d_r1sel, d_r2sel, d_wsel;
@@ -229,27 +165,21 @@ module lc4_processor
 
    // Load Pipeline data
    insn_pipeline FD_pipeline( 
-      .in_insn(f_insn), .in_pc(f_pc), .in_dmem_data(f_dmem_data), .in_nzp(f_nzp),
+      .in_insn(f_insn), .in_pc(f_pc), .in_dmem_data(f_dmem_data),
+      .in_nzp(f_nzp),
       .in_stall(f_stall),
-      .out_insn(d_insn), .out_pc(d_pc), .out_dmem_data(d_dmem_data), .out_nzp(d_nzp),
+      .out_insn(d_insn), .out_pc(d_pc), .out_dmem_data(d_dmem_data),
+      .out_nzp(d_nzp),
       .out_stall(d_stall),
       .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst)
    );
 
-   //Bypassing
-   // TODO: This code wasn't working, so I commented out not necessary 
-   
+   //Bypassing   
    wire wd_bypass_rs, wd_bypass_rt;
    assign wd_bypass_rs = (w_wsel == d_r1sel);
    assign wd_bypass_rt = (w_wsel == d_r2sel);
    assign d_rs = wd_bypass_rs ? w_rs : d_rs_default;
    assign d_rt = wd_bypass_rt ? w_rt : d_rt_default;
-   
-   // And just made it do the default for now
-   //assign d_rs = d_rs_default;
-   //assign d_rt = d_rt_default;
-
-
 
    // Compute
    lc4_decoder d(
@@ -320,16 +250,16 @@ module lc4_processor
 
    // Load Pipeline data
    insn_pipeline DX_pipeline( 
-      .in_insn(d_insn), .in_pc(d_pc), .in_dmem_data(d_dmem_data), .in_nzp(d_nzp),
-      .in_r1sel(d_r1sel), .in_r2sel(d_r2sel), .in_wsel(d_wsel), // .in_nzp(), TODO: add NZP?
+      .in_insn(d_insn), .in_pc(d_pc), .in_dmem_data(d_dmem_data), 
+      .in_r1sel(d_r1sel), .in_r2sel(d_r2sel), .in_wsel(d_wsel),
       .in_r1re(d_r1re), .in_r2re(d_r2re), .in_rs(d_rs), .in_rt(d_rt),
       .in_regfile_we(d_regfile_we), .in_nzp_we(d_nzp_we), 
       .in_select_pc_plus_one(d_select_pc_plus_one), 
       .in_is_load(d_is_load), .in_is_store(d_is_store), .in_is_branch(d_is_branch), 
       .in_is_control_insn(d_is_control_insn),
       .in_stall(d_stall),
-      .out_insn(x_insn), .out_pc(x_pc), .out_dmem_data(x_dmem_data), .out_nzp(x_nzp),
-      .out_r1sel(x_r1sel), .out_r2sel(x_r2sel), .out_wsel(x_wsel), // .in_nzp(), TODO: add NZP?
+      .out_insn(x_insn), .out_pc(x_pc), .out_dmem_data(x_dmem_data), 
+      .out_r1sel(x_r1sel), .out_r2sel(x_r2sel), .out_wsel(x_wsel),
       .out_r1re(x_r1re), .out_r2re(x_r2re), .out_rs(x_rs_default), .out_rt(x_rt_default),
       .out_regfile_we(x_regfile_we), .out_nzp_we(x_nzp_we), 
       .out_select_pc_plus_one(x_select_pc_plus_one), 
@@ -353,6 +283,13 @@ module lc4_processor
 
    // write to the register
    assign x_wdata = x_is_load ? x_dmem_data : (x_select_pc_plus_one ? x_pc_plus_one : x_alu);
+
+   // Now that we have exectuted the instruction, we can set up the NZP bits
+   nzp_unit n(
+      .i_wdata(x_wdata),
+      .next_nzp(x_nzp)
+   );
+   //assign x_nzp = 1;
 
    // branch logic!
    wire x_nzp_result = ((x_nzp & x_insn[11:9]) != 3'b0);
@@ -391,8 +328,9 @@ module lc4_processor
    assign m_rt = wm_bypass_rt ? w_wdata : m_rt_default;
 
    insn_pipeline XM_pipeline( 
-      .in_insn(x_insn), .in_pc(x_pc), .in_dmem_data(x_dmem_data), .in_nzp(x_nzp),
-      .in_r1sel(x_r1sel), .in_r2sel(x_r2sel), .in_wsel(x_wsel), // .in_nzp(), TODO: add NZP?
+      .in_insn(x_insn), .in_pc(x_pc), .in_dmem_data(x_dmem_data),
+      .in_nzp(x_nzp),
+      .in_r1sel(x_r1sel), .in_r2sel(x_r2sel), .in_wsel(x_wsel),
       .in_r1re(x_r1re), .in_r2re(x_r2re), 
       .in_regfile_we(x_regfile_we), .in_nzp_we(x_nzp_we), 
       .in_select_pc_plus_one(x_select_pc_plus_one), 
@@ -401,8 +339,9 @@ module lc4_processor
       .in_rs(x_rs), .in_rt(x_rt), .in_alu(x_alu), .in_wdata(x_wdata), .in_next_pc(x_next_pc),
       .in_nzp_result(x_nzp_result),
       .in_stall(x_stall),
-      .out_insn(m_insn), .out_pc(m_pc), .out_dmem_data(m_dmem_data), .out_nzp(m_nzp),
-      .out_r1sel(m_r1sel), .out_r2sel(m_r2sel), .out_wsel(m_wsel), // .in_nzp(), TODO: add NZP?
+      .out_insn(m_insn), .out_pc(m_pc), .out_dmem_data(m_dmem_data), 
+      .out_nzp(m_nzp),
+      .out_r1sel(m_r1sel), .out_r2sel(m_r2sel), .out_wsel(m_wsel),
       .out_r1re(m_r1re), .out_r2re(m_r2re), 
       .out_regfile_we(m_regfile_we), .out_nzp_we(m_nzp_we), 
       .out_select_pc_plus_one(m_select_pc_plus_one), 
@@ -445,8 +384,9 @@ module lc4_processor
 
    // Computed
    insn_pipeline MW_pipeline( 
-      .in_insn(m_insn), .in_pc(m_pc), .in_dmem_data(m_dmem_data), .in_nzp(m_nzp),
-      .in_r1re(m_r1re), .in_r2re(m_r2re), .in_wsel(m_wsel), // .in_nzp(), TODO: add NZP?
+      .in_insn(m_insn), .in_pc(m_pc), .in_dmem_data(m_dmem_data), 
+      .in_nzp(m_nzp),
+      .in_r1re(m_r1re), .in_r2re(m_r2re), .in_wsel(m_wsel),
       .in_regfile_we(m_regfile_we), .in_nzp_we(m_nzp_we), 
       .in_select_pc_plus_one(m_select_pc_plus_one), 
       .in_is_load(m_is_load), .in_is_store(m_is_store), .in_is_branch(m_is_branch), 
@@ -455,8 +395,9 @@ module lc4_processor
       .in_nzp_result(m_nzp_result),
       .in_dmem_we(m_dmem_we), .in_dmem_addr(m_dmem_addr), .in_dmem_towrite(m_dmem_towrite),
       .in_stall(m_stall),
-      .out_insn(w_insn), .out_pc(w_pc), .out_dmem_data(w_dmem_data), .out_nzp(w_nzp),
-      .out_r1sel(w_r1sel), .out_r2sel(w_r2sel), .out_wsel(w_wsel), // .in_nzp(), TODO: add NZP?
+      .out_insn(w_insn), .out_pc(w_pc), .out_dmem_data(w_dmem_data), 
+      .out_nzp(w_nzp),
+      .out_r1sel(w_r1sel), .out_r2sel(w_r2sel), .out_wsel(w_wsel),
       .out_r1re(w_r1re), .out_r2re(w_r2re), 
       .out_regfile_we(w_regfile_we), .out_nzp_we(w_nzp_we), 
       .out_select_pc_plus_one(w_select_pc_plus_one), 
@@ -470,23 +411,6 @@ module lc4_processor
    );
 
 
-   // Make the NZP register
-   /*
-   Nbit_reg #(3, 3'd0) nzp_reg (
-      .in(w_nzp_result), 
-      .out(w_nzp), 
-      .clk(clk), 
-      .we(w_nzp_we), 
-      .gwe(gwe), 
-      .rst(rst)
-   );
-
-   // Update the NZP bits from the ALU
-   nzp_unit n(
-      .i_wdata(w_wdata),
-      .next_nzp(w_next_nzp)
-   );*/
-
    // TEST SIGNALS
    //Stall
    assign test_stall = w_stall; 
@@ -496,7 +420,7 @@ module lc4_processor
    assign test_regfile_wsel = w_wsel;
    assign test_regfile_data = w_regfile_we ? w_wdata : 16'd0;
    assign test_nzp_we = w_nzp_we;
-   //assign test_nzp_new_bits = w_nzp_result;
+   assign test_nzp_new_bits = w_nzp;
 
    /* Add $display(...) calls in the always block below to
     * print out debug information at the end of every cycle.
@@ -514,7 +438,10 @@ module lc4_processor
       $display("%d PCs: %h, %h, %h, %h, %h", $time, f_pc, d_pc, x_pc, m_pc, w_pc);
       $display("%d Stalls: %h, %h, %h, %h, %h", $time, f_stall, d_stall, x_stall, m_stall, w_stall);
       $display("%d regfile we: __, %h, %h, %h, %h", $time, d_regfile_we, x_regfile_we, m_regfile_we, w_regfile_we);
-      $display("%d regfile_reg should be: __, %h, %h, %h, %h", $time, d_wsel, x_wsel, m_wsel, w_wsel);
+      $display("%d regfile_reg: __, %h, %h, %h, %h", $time, d_wsel, x_wsel, m_wsel, w_wsel);
+      $display("%d nzp: %h, %h, %h, %h, %h", $time, f_nzp, d_nzp, x_nzp, m_nzp, w_nzp);
+      $display("%d select PC plus 1: __, %h, %h, %h, %h", $time, d_select_pc_plus_one, x_select_pc_plus_one, m_select_pc_plus_one, w_select_pc_plus_one);
+      $display("%d alu: __, __, %h, %h, %h", $time, x_alu, m_alu, w_alu);
 
       // Start each $display() format string with a %d argument for time
       // it will make the output easier to read.  Use %b, %h, and %d
