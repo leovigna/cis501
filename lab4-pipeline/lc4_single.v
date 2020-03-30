@@ -195,13 +195,6 @@ module lc4_processor
    assign test_dmem_addr = o_dmem_addr;
    assign test_dmem_data = is_store ? o_dmem_towrite : (is_load ? i_cur_dmem_data : 16'd0) ;
 
-   /*******************************
-    * TODO: INSERT YOUR CODE HERE *
-    *******************************/
-
-
-
-
 
    /* Add $display(...) calls in the always block below to
     * print out debug information at the end of every cycle.
