@@ -40,14 +40,14 @@ module insn_pipeline
     input  wire in_r1re, in_r2re, in_regfile_we, in_nzp_we, in_select_pc_plus_one, in_is_load, in_is_store, in_is_branch, in_is_control_insn,
     input wire in_dmem_we,
     input wire  [15:0] in_dmem_addr, in_dmem_towrite,
-    input wire [2:0] in_stall,
+    input wire [1:0] in_stall,
     output  wire [15:0] out_insn, out_pc, out_dmem_data, out_rs, out_rt, out_alu, out_wdata, out_jmp_tgt, out_next_pc,
     output  wire [2:0] out_r1sel, out_r2sel, out_wsel, out_nzp,
     output wire out_nzp_result,
     output  wire out_r1re, out_r2re, out_regfile_we, out_nzp_we, out_select_pc_plus_one, out_is_load, out_is_store, out_is_branch, out_is_control_insn,
     output wire out_dmem_we,
     output wire [15:0] out_dmem_addr, out_dmem_towrite,
-    output wire [2:0] out_stall,
+    output wire [1:0] out_stall,
     input  wire         clk,
     input  wire         we,
     input  wire         gwe,
@@ -86,7 +86,7 @@ module insn_pipeline
 
    Nbit_reg dmem_we_reg (.in(in_dmem_we), .out(out_dmem_we), .clk(clk), .we(we), .gwe(gwe), .rst(rst));
 
-   Nbit_reg #(2, 0) stall_reg (.in(in_stall), .out(out_stall), .clk(clk), .we(we), .gwe(gwe), .rst(rst));
+   Nbit_reg #(2, 2) stall_reg (.in(in_stall), .out(out_stall), .clk(clk), .we(we), .gwe(gwe), .rst(rst));
 
 
 endmodule
@@ -152,6 +152,8 @@ module lc4_processor
    // Previous stages
    wire [15:0] d_insn, d_pc, d_dmem_data;
    wire [2:0] d_nzp;
+   wire [1:0] d_stall;
+   assign d_stall = 0; //Default no stall
    
    // Computed in D
    wire [2:0] d_r1sel, d_r2sel, d_wsel;
@@ -167,7 +169,7 @@ module lc4_processor
 
    //Bypassing
    // TODO: Test
-   wire wd_bypass;
+   wire wd_bypass_rs, wd_bypass_rt;
    assign wd_bypass_rs = (w_wsel == d_r1sel);
    assign wd_bypass_rt = (w_wsel == d_r2sel);
    assign d_rs = wd_bypass_rs ? w_rs : d_rs_default;
@@ -216,37 +218,38 @@ module lc4_processor
    // Computed during X
    wire [15:0] x_pc_plus_one, x_rs, x_rt, x_alu, x_wdata, x_next_pc;
    wire [15:0] x_rs_default, x_rt_default;
-   wire [2:0] x_stall;
-   wire [2:0] x_stall_default;
+   wire [1:0] x_stall;
+   wire [1:0] x_stall_default;
 
    //TODO
    // Load to use stall
-   wire x_stall_ld, mx_bypass, wx_bypass, x_aluinA;
+   wire x_stall_ld, mx_bypass, x_aluinA;
    // From slides
    assign x_stall_ld = x_is_load && ((d_r1sel == x_wsel) || ((d_r2sel == x_wsel) && !d_is_store));
    assign x_stall = x_stall_ld ? 2'b11 : x_stall_default;
 
    
    //assign x_aluinA = (x_rs == m_wsel) (x_rt == m_wsel)
+   wire mx_bypass_rs, mx_bypass_rt, wx_bypass_rs, wx_bypass_rt;
    assign mx_bypass_rs = m_is_load && (m_wsel == x_r1sel);
    assign mx_bypass_rt = m_is_load && (m_wsel == x_r2sel);
    assign wx_bypass_rs = w_wsel == x_rs;
    assign wx_bypass_rt = w_wsel == x_rt;
 
-   assign x_rs = (mx_bypass_rs ? m_wdata) : (wx_bypass_rs ? w_wdata : x_rs_default);
-   assign x_rt = (mx_bypass_rt ? m_wdata) : (wx_bypass_rt ? w_wdata : x_rt_default);
+   assign x_rs = mx_bypass_rs ? m_wdata : (wx_bypass_rs ? w_wdata : x_rs_default);
+   assign x_rt = mx_bypass_rt ? m_wdata : (wx_bypass_rt ? w_wdata : x_rt_default);
 
    // Load Pipeline data
    insn_pipeline DX_pipeline( 
        .in_insn(d_insn), .in_pc(d_pc), .in_dmem_data(d_dmem_data), .in_nzp(d_nzp),
-       .in_r1re(d_r1re), .in_r2re(d_r2re), .in_rs(d_rs), .in_rd(d_rd),
+       .in_r1re(d_r1re), .in_r2re(d_r2re), .in_rs(d_rs), .in_rt(d_rt),
        .in_regfile_we(d_regfile_we), .in_nzp_we(d_nzp_we), 
        .in_select_pc_plus_one(d_select_pc_plus_one), 
        .in_is_load(d_is_load), .in_is_store(d_is_store), .in_is_branch(d_is_branch), 
        .in_is_control_insn(d_is_control_insn),
        .in_stall(d_stall),
        .out_insn(x_insn), .out_pc(x_pc), .out_dmem_data(x_dmem_data), .out_nzp(x_nzp),
-       .out_r1re(x_r1re), .out_r2re(x_r2re), .out_rs(x_rs_default), .out_rd(x_rd_default),
+       .out_r1re(x_r1re), .out_r2re(x_r2re), .out_rs(x_rs_default), .out_rt(x_rt_default),
        .out_regfile_we(x_regfile_we), .out_nzp_we(x_nzp_we), 
        .out_select_pc_plus_one(x_select_pc_plus_one), 
        .out_is_load(x_is_load), .out_is_store(x_is_store), .out_is_branch(x_is_branch), 
@@ -285,7 +288,7 @@ module lc4_processor
    wire [15:0] m_rs, m_rt, m_alu, m_wdata, m_next_pc;
    wire m_nzp_result;
    wire [15:0] m_rs_default, m_rt_default;
-   wire [2:0] m_stall;
+   wire [1:0] m_stall;
 
    // Computed in M
    wire m_dmem_we;
@@ -300,10 +303,10 @@ module lc4_processor
    //Bypassing
    // TODO
    wire wm_bypass_rt, wm_bypass_rs;
-   assign wm_bypass_rs = = w_is_load && (m_is_load && m_rs == w_wsel) //Load, Load 
-   assign wm_bypass_rt = w_is_load && (m_is_store && m_rt == w_wsel) //Load, Store
-   assign m_rs = (wm_bypass_rs ? w_wdata) : m_rs_default;
-   assign m_rt = (wm_bypass_rt ? w_wdata) : m_rt_default;
+   assign wm_bypass_rs = w_is_load && (m_is_load && m_rs == w_wsel); //Load, Load 
+   assign wm_bypass_rt = w_is_load && (m_is_store && m_rt == w_wsel); //Load, Store
+   assign m_rs = wm_bypass_rs ? w_wdata : m_rs_default;
+   assign m_rt = wm_bypass_rt ? w_wdata : m_rt_default;
 
    insn_pipeline XM_pipeline( 
        .in_insn(x_insn), .in_pc(x_pc), .in_dmem_data(x_dmem_data), .in_nzp(x_nzp),
@@ -323,7 +326,7 @@ module lc4_processor
        .out_is_control_insn(m_is_control_insn),
        .out_rs(m_rs_default), .out_rt(m_rt_default), .out_alu(m_alu), .out_wdata(m_wdata), .out_next_pc(m_next_pc),
        .out_nzp_result(m_nzp_result),
-       .out_stall(.m_stall),
+       .out_stall(m_stall),
        .we(1'b1), .gwe(gwe), .rst(rst));
 
     // Write to the memory
@@ -353,7 +356,7 @@ module lc4_processor
    wire w_dmem_we;
    wire [15:0] w_dmem_addr, w_dmem_towrite;
    wire [2:0] w_next_nzp;
-   wire [2:0] w_stall;
+   wire [1:0] w_stall;
 
    // Computed
    insn_pipeline MW_pipeline( 
@@ -419,6 +422,8 @@ module lc4_processor
     */
 `ifndef NDEBUG
    always @(posedge gwe) begin
+      $display("%d Input %h", $time, i_cur_insn);
+      $display("%d %h %h %h %h %h", $time, f_insn, d_insn, x_insn, m_insn, w_insn);
       $display("%d %h %h %h %h %h", $time, f_pc, d_pc, x_pc, m_pc, test_cur_pc);
       if (o_dmem_we)
          $display("%d STORE %h <= %h", $time, o_dmem_addr, o_dmem_towrite);
