@@ -203,6 +203,8 @@ module lc4_processor
    // default to no stall
    assign f_stall = 0;
 
+   
+
    insn_pipeline Input_F_pipeline( 
        .in_insn(i_cur_insn), .in_pc(x_pc), .in_dmem_data(i_cur_dmem_data),
        .in_nzp(w_next_nzp),
@@ -489,8 +491,8 @@ module lc4_processor
    // TEST SIGNALS
    //Stall
    assign test_stall = w_stall; 
-   assign test_cur_pc = o_cur_pc;
-   assign test_cur_insn = i_cur_insn;
+   assign test_cur_pc = w_pc;
+   assign test_cur_insn = w_insn;
    assign test_regfile_we = w_regfile_we;
    assign test_regfile_wsel = w_wsel;
    assign test_regfile_data = w_regfile_we ? w_wdata : 16'd0;
