@@ -40,12 +40,14 @@ module insn_pipeline
     input  wire in_r1re, in_r2re, in_regfile_we, in_nzp_we, in_select_pc_plus_one, in_is_load, in_is_store, in_is_branch, in_is_control_insn,
     input wire in_dmem_we,
     input wire  [15:0] in_dmem_addr, in_dmem_towrite,
+    input wire [2:0] in_stall,
     output  wire [15:0] out_insn, out_pc, out_dmem_data, out_rs, out_rt, out_alu, out_wdata, out_jmp_tgt, out_next_pc,
     output  wire [2:0] out_r1sel, out_r2sel, out_wsel, out_nzp,
     output wire out_nzp_result,
     output  wire out_r1re, out_r2re, out_regfile_we, out_nzp_we, out_select_pc_plus_one, out_is_load, out_is_store, out_is_branch, out_is_control_insn,
     output wire out_dmem_we,
     output wire [15:0] out_dmem_addr, out_dmem_towrite,
+    output wire [2:0] out_stall,
     input  wire         clk,
     input  wire         we,
     input  wire         gwe,
@@ -83,6 +85,8 @@ module insn_pipeline
    Nbit_reg is_control_insn_reg (.in(in_is_control_insn), .out(out_is_control_insn), .clk(clk), .we(we), .gwe(gwe), .rst(rst));
 
    Nbit_reg dmem_we_reg (.in(in_dmem_we), .out(out_dmem_we), .clk(clk), .we(we), .gwe(gwe), .rst(rst));
+
+   Nbit_reg #(2, 0) stall_reg (.in(in_stall), .out(out_stall), .clk(clk), .we(we), .gwe(gwe), .rst(rst));
 
 
 endmodule
@@ -212,12 +216,17 @@ module lc4_processor
    // Computed during X
    wire [15:0] x_pc_plus_one, x_rs, x_rt, x_alu, x_wdata, x_next_pc;
    wire [15:0] x_rs_default, x_rt_default;
+   wire [2:0] x_stall;
+   wire [2:0] x_stall_default;
 
    //TODO
    // Load to use stall
-   wire x_stall, mx_bypass, wx_bypass, x_aluinA;
+   wire x_stall_ld, mx_bypass, wx_bypass, x_aluinA;
    // From slides
-   assign x_stall = x_is_load && ((d_r1sel == x_wsel) || ((d_r2sel == x_wsel) && !d_is_store));
+   assign x_stall_ld = x_is_load && ((d_r1sel == x_wsel) || ((d_r2sel == x_wsel) && !d_is_store));
+   assign x_stall = x_stall_ld ? 2'b11 : x_stall_default;
+
+   
    //assign x_aluinA = (x_rs == m_wsel) (x_rt == m_wsel)
    assign mx_bypass_rs = m_is_load && (m_wsel == x_r1sel);
    assign mx_bypass_rt = m_is_load && (m_wsel == x_r2sel);
@@ -235,12 +244,14 @@ module lc4_processor
        .in_select_pc_plus_one(d_select_pc_plus_one), 
        .in_is_load(d_is_load), .in_is_store(d_is_store), .in_is_branch(d_is_branch), 
        .in_is_control_insn(d_is_control_insn),
+       .in_stall(d_stall),
        .out_insn(x_insn), .out_pc(x_pc), .out_dmem_data(x_dmem_data), .out_nzp(x_nzp),
        .out_r1re(x_r1re), .out_r2re(x_r2re), .out_rs(x_rs_default), .out_rd(x_rd_default),
        .out_regfile_we(x_regfile_we), .out_nzp_we(x_nzp_we), 
        .out_select_pc_plus_one(x_select_pc_plus_one), 
        .out_is_load(x_is_load), .out_is_store(x_is_store), .out_is_branch(x_is_branch), 
        .out_is_control_insn(x_is_control_insn),
+       .out_stall(x_stall_default),
        .we(1'b1), .gwe(gwe), .rst(rst));
 
    // Increment PC
@@ -274,6 +285,7 @@ module lc4_processor
    wire [15:0] m_rs, m_rt, m_alu, m_wdata, m_next_pc;
    wire m_nzp_result;
    wire [15:0] m_rs_default, m_rt_default;
+   wire [2:0] m_stall;
 
    // Computed in M
    wire m_dmem_we;
@@ -302,6 +314,7 @@ module lc4_processor
        .in_is_control_insn(x_is_control_insn),
        .in_rs(x_rs), .in_rt(x_rt), .in_alu(x_alu), .in_wdata(x_wdata), .in_next_pc(x_next_pc),
        .in_nzp_result(x_nzp_result),
+       .in_stall(x_stall),
        .out_insn(m_insn), .out_pc(m_pc), .out_dmem_data(m_dmem_data), .out_nzp(m_nzp),
        .out_r1re(m_r1re), .out_r2re(m_r2re), 
        .out_regfile_we(m_regfile_we), .out_nzp_we(m_nzp_we), 
@@ -310,6 +323,7 @@ module lc4_processor
        .out_is_control_insn(m_is_control_insn),
        .out_rs(m_rs_default), .out_rt(m_rt_default), .out_alu(m_alu), .out_wdata(m_wdata), .out_next_pc(m_next_pc),
        .out_nzp_result(m_nzp_result),
+       .out_stall(.m_stall),
        .we(1'b1), .gwe(gwe), .rst(rst));
 
     // Write to the memory
@@ -339,6 +353,7 @@ module lc4_processor
    wire w_dmem_we;
    wire [15:0] w_dmem_addr, w_dmem_towrite;
    wire [2:0] w_next_nzp;
+   wire [2:0] w_stall;
 
    // Computed
    insn_pipeline MW_pipeline( 
@@ -351,6 +366,7 @@ module lc4_processor
        .in_rs(m_rs), .in_rt(m_rt), .in_alu(m_alu), .in_wdata(m_wdata), .in_next_pc(m_next_pc),
        .in_nzp_result(m_nzp_result),
        .in_dmem_we(m_dmem_we), .in_dmem_addr(m_dmem_addr), .in_dmem_towrite(m_dmem_towrite),
+       .in_stall(m_stall),
        .out_insn(w_insn), .out_pc(w_pc), .out_dmem_data(w_dmem_data), .out_nzp(w_nzp),
        .out_r1re(w_r1re), .out_r2re(w_r2re), 
        .out_regfile_we(w_regfile_we), .out_nzp_we(w_nzp_we), 
@@ -360,6 +376,7 @@ module lc4_processor
        .out_rs(w_rs), .out_rt(w_rt), .out_alu(w_alu), .out_wdata(w_wdata), .out_next_pc(w_next_pc),
        .out_nzp_result(w_nzp_result),
        .out_dmem_we(w_dmem_we), .out_dmem_addr(w_dmem_addr), .out_dmem_towrite(w_dmem_towrite),
+       .out_stall(w_stall),
        .we(1'b1), .gwe(gwe), .rst(rst));
 
    // Make the NZP register
@@ -381,8 +398,7 @@ module lc4_processor
 
    // TEST SIGNALS
    //Stall
-   assign test_stall = 2'b0; 
-
+   assign test_stall = w_stall; 
    //assign test_cur_pc = 16'h9010;
    assign test_cur_pc = w_next_pc;
    assign test_cur_insn = w_insn;
