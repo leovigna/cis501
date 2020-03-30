@@ -141,8 +141,6 @@ module lc4_processor
 
 
    /*************** FETCH STAGE ***************/
-   wire [15:0] next_pc;
-
    wire [15:0] f_dmem_data;
    //Test Signals
    // We start the stall up here so it moves with the instruction!
@@ -437,7 +435,7 @@ module lc4_processor
       $display("%d Stalls: %h, %h, %h, %h, %h", $time, f_stall, d_stall, x_stall, m_stall, w_stall);
       $display("%d regfile we: __, %h, %h, %h, %h", $time, d_regfile_we, x_regfile_we, m_regfile_we, w_regfile_we);
       $display("%d regfile_reg: __, %h, %h, %h, %h", $time, d_wsel, x_wsel, m_wsel, w_wsel);
-      $display("%d nzp: %h, %h, %h, %h, %h", $time, f_nzp, d_nzp, x_nzp, m_nzp, w_nzp);
+      $display("%d nzp: __, __, __, %h, %h, %h", $time, x_nzp, m_nzp, w_nzp);
       $display("%d select PC plus 1: __, %h, %h, %h, %h", $time, d_select_pc_plus_one, x_select_pc_plus_one, m_select_pc_plus_one, w_select_pc_plus_one);
       $display("%d alu: __, __, %h, %h, %h", $time, x_alu, m_alu, w_alu);
 
