@@ -282,11 +282,20 @@ module lc4_processor
     */
 `ifndef NDEBUG
    always @(posedge gwe) begin
+<<<<<<< HEAD
       /*
       $display("%d %h %h %h %h %h", $time, f_pc, d_pc, e_pc, m_pc, test_cur_pc);
       if (o_dmem_we)
          $display("%d STORE %h <= %h", $time, o_dmem_addr, o_dmem_towrite);
         */
+=======
+    /*
+      $display("%d %h %h %h %h %h", $time, f_pc, d_pc, e_pc, m_pc, test_cur_pc);
+      if (o_dmem_we)
+         $display("%d STORE %h <= %h", $time, o_dmem_addr, o_dmem_towrite);
+         */
+
+>>>>>>> c817b26ce9bea9808efaeb16c80d6fcbb7564e40
       // Start each $display() format string with a %d argument for time
       // it will make the output easier to read.  Use %b, %h, and %d
       // for binary, hex, and decimal output of additional variables.
