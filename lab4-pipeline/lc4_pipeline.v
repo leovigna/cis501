@@ -196,12 +196,17 @@ module lc4_processor
    // F: Fetch Stage
    wire [15:0] f_insn, f_pc, f_dmem_data;
    wire [2:0] f_nzp;
+   wire [1:0] f_stall;
    //Test Signals
    assign o_cur_pc = f_pc; 
+   // We start the stall up here so it moves with the instruction!
+   // default to no stall
+   assign f_stall = 0;
 
    insn_pipeline Input_F_pipeline( 
        .in_insn(i_cur_insn), .in_pc(x_pc), .in_dmem_data(i_cur_dmem_data),
        .in_nzp(w_next_nzp),
+       .in_stall(f_stall),
        .out_insn(f_insn), .out_pc(f_pc), .out_dmem_data(f_dmem_data),
        .out_nzp(f_nzp),
        .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst)
@@ -214,8 +219,7 @@ module lc4_processor
    wire [15:0] d_insn, d_pc, d_dmem_data;
    wire [2:0] d_nzp;
    wire [1:0] d_stall;
-   assign d_stall = 0; //Default no stall
-   
+
    // Computed in D
    wire [2:0] d_r1sel, d_r2sel, d_wsel;
    wire d_r1re, d_r2re, d_regfile_we, d_nzp_we, d_select_pc_plus_one, d_is_load, d_is_store, d_is_branch, d_is_control_insn;
@@ -225,7 +229,9 @@ module lc4_processor
    // Load Pipeline data
    insn_pipeline FD_pipeline( 
        .in_insn(f_insn), .in_pc(f_pc), .in_dmem_data(f_dmem_data), .in_nzp(f_nzp),
+       .in_stall(f_stall),
        .out_insn(d_insn), .out_pc(d_pc), .out_dmem_data(d_dmem_data), .out_nzp(d_nzp),
+       .out_stall(d_stall),
        .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
 
    //Bypassing
@@ -464,8 +470,7 @@ module lc4_processor
    // TEST SIGNALS
    //Stall
    assign test_stall = w_stall; 
-   //assign test_cur_pc = 16'h9010;
-   assign test_cur_pc = w_next_pc;
+   assign test_cur_pc = o_cur_pc;
    assign test_cur_insn = w_insn;
    assign test_regfile_we = w_regfile_we;
    assign test_regfile_wsel = w_wsel;
@@ -484,11 +489,11 @@ module lc4_processor
     */
 `ifndef NDEBUG
    always @(posedge gwe) begin
-      $display("%d Input %h", $time, i_cur_insn);
-      $display("%d %h %h %h %h %h", $time, f_insn, d_insn, x_insn, m_insn, w_insn);
-      $display("%d %h %h %h %h %h", $time, f_pc, d_pc, x_pc, m_pc, test_cur_pc);
-      if (o_dmem_we)
-         $display("%d STORE %h <= %h", $time, o_dmem_addr, o_dmem_towrite);
+      $display("%d SHIT: %h", $time, (i_cur_insn == 16'b0));
+      $display("%d PC: %h, Instruction: %h", $time, o_cur_pc, i_cur_insn);
+      $display("%d Instructions: %h, %h, %h, %h, %h", $time, f_insn, d_insn, x_insn, m_insn, w_insn);
+      $display("%d PCs: %h, %h, %h, %h, %h", $time, f_pc, d_pc, x_pc, m_pc, w_pc);
+      $display("%d Stalls: __, %h, %h, %h, %h", $time, d_stall, x_stall, m_stall, w_stall);
 
       // Start each $display() format string with a %d argument for time
       // it will make the output easier to read.  Use %b, %h, and %d

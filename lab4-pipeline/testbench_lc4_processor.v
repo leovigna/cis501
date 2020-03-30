@@ -160,7 +160,7 @@ module test_processor;
                            verify_dmem_addr,
                            verify_dmem_data)) begin
 
-         if (num_cycles % 10000 == 0) begin
+         if (num_cycles % 1 == 0) begin
             $display("Cycle number: %d", num_cycles);
          end
 
