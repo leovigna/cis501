@@ -60,9 +60,7 @@ module lc4_processor
     input wire [7:0]   switch_data, // Current settings of the Zedboard switches
     output wire [7:0]  led_data // Which Zedboard LEDs should be turned on?
     );
-   
-   /*** YOUR CODE HERE ***/
-
+      
    // By default, assign LEDs to display switch inputs to avoid warnings about
    // disconnected ports. Feel free to use this for debugging input/output if
    // you desire.
@@ -71,6 +69,8 @@ module lc4_processor
    
    /* DO NOT MODIFY THIS CODE */
    // Always execute one instruction each cycle (test_stall will get used in your pipelined processor)
+   
+   //Stall
    assign test_stall = 2'b0; 
 
    // pc wires attached to the PC register's ports
@@ -78,15 +78,34 @@ module lc4_processor
    wire [15:0]   next_pc; // Next program counter (you compute this and feed it into next_pc)
 
    // Program counter register, starts at 8200h at bootup
-   Nbit_reg #(16, 16'h8200) pc_reg (.in(next_pc), .out(pc), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+   Nbit_reg #(16, 16'h8200) pc_reg (.in(c), .out(pc), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
 
-   /* END DO NOT MODIFY THIS CODE */
+/*************** FETCH ***************/
+   // F: Fetch Stage
+   wire [15:0] f_insn;
+   wire [15:0] f_pc;
+   wire [15:0] f_dmem_data;
+   
 
+   Nbit_reg #(16, 0) F_insn (.in(i_cur_insn), .out(f_insn), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+   Nbit_reg #(16, 0) F_pc (.in(pc), .out(f_pc), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+   Nbit_reg #(16, 0) F_cur_dmem_data (.in(i_cur_dmem_data), .out(f_dmem_data), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+
+/*************** DECODE ***************/
    // Parse the instruction
+   // D: Decode Stage
+   wire [15:0] d_insn;
+   wire [15:0] d_pc;
+   wire [15:0] d_dmem_data;
+
+   Nbit_reg #(16, 0) D_insn (.in(f_insn), .out(d_insn), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+   Nbit_reg #(16, 0) D_pc (.in(f_pc), .out(d_pc), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+   Nbit_reg #(16, 0) D_cur_dmem_data (.in(f_dmem_data), .out(d_dmem_data), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+
    wire [2:0] r1sel, r2sel, wsel;
    wire r1re, r2re, regfile_we, nzp_we, select_pc_plus_one, is_load, is_store, is_branch, is_control_insn; 
    lc4_decoder d(
-      .insn(i_cur_insn),
+      .insn(d_insn),
       .r1re(r1re),
       .r1sel(r1sel),
       .r2re(r2re),
@@ -101,75 +120,140 @@ module lc4_processor
       .is_control_insn(is_control_insn)
    );
 
-   wire [15:0] o_rs, o_rt;
-   wire [15:0] i_wdata; // write to data file by assigning this
+/*************** EXECUTE ***************/
+   // X: Execute Stage
+   wire [15:0] x_insn;
+   wire [15:0] x_pc;
+   wire [15:0] x_dmem_data;
+
+   wire [2:0] x_r1sel, x_r2sel, x_wsel;
+   wire x_r1re, x_r2re, x_regfile_we, x_nzp_we, x_select_pc_plus_one, x_is_load, x_is_store, x_is_branch, x_is_control_insn; 
+   
+   Nbit_reg #(16, 0) X_insn (.in(d_insn), .out(x_insn), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+   Nbit_reg #(16, 0) X_pc (.in(d_pc), .out(x_pc), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+   Nbit_reg #(16, 0) X_cur_dmem_data (.in(d_dmem_data), .out(x_dmem_data), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+
+   Nbit_reg #(3, 0) x_r1sel_reg (.in(r1sel), .out(x_r1sel), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+   Nbit_reg #(3, 0) x_r2sel_reg (.in(r2sel), .out(x_r2sel), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+   Nbit_reg #(3, 0) x_wsel_reg (.in(wsel), .out(x_wsel), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+   Nbit_reg x_r1re_reg (.in(r1re), .out(x_r1re), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+   Nbit_reg x_r2re_reg (.in(r1re), .out(x_r1re), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+   Nbit_reg x_regfile_we_reg (.in(regfile_we), .out(x_regfile_we), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+
+   // Increment PC
+   wire [15:0] x_pc_plus_one;
+   cla16 a(.a(x_pc), .b(16'd0), .cin(1'b1), .sum(x_pc_plus_one));
+
+   wire [15:0] x_rs, x_rt;
+   wire [15:0] x_wdata; // write to data file by assigning this
+   
+   wire [15:0] x_alu;
+   // Run the ALU
+   lc4_alu alu(
+      .i_insn(x_insn), 
+      .i_pc(pc), 
+      .i_r1data(x_rs), 
+      .i_r2data(x_rt), 
+      .o_result(x_alu)
+   );
+
+   // write to the register
+   assign x_wdata = x_is_load ? x_dmem_data : (x_select_pc_plus_one ? x_pc_plus_one : x_alu);
+
+   // branch logic!
+   wire x_nzp_result = ((x_nzp & x_insn[11:9]) != 3'b0);
+   // New
+   wire [15:0] x_jmp_tgt = x_is_control_insn ? x_alu : x_pc_plus_one;
+   assign x_next_pc = (x_is_branch & x_nzp_result) ? x_alu : x_jmp_tgt;
+ 
+/*************** MEMORY ***************/
+   // M: Memory
+   wire [15:0] m_insn;
+   wire [15:0] m_pc;
+   wire [15:0] m_dmem_data;
+
+   wire [2:0] m_r1sel, m_r2sel, m_wsel;
+   wire m_r1re, m_r2re, m_regfile_we, m_nzp_we, m_select_pc_plus_one, m_is_load, m_is_store, m_is_branch, m_is_control_insn; 
+   wire [15:0] m_rs, m_rt;
+   wire [15:0] m_dmem_towrite;
+
+   Nbit_reg m_is_store_reg (.in(x_is_store), .out(m_is_store), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+   Nbit_reg m_is_load_reg (.in(x_is_load), .out(m_is_load), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+   Nbit_reg m_alu_reg (.in(x_alu), .out(m_alu), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+   Nbit_reg m_dmem_we_reg (.in(x_dmem_we), .out(m_dmem_we), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+   Nbit_reg m_dmem_addr_reg (.in(x_dmem_addr), .out(m_dmem_addr), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+   Nbit_reg m_rs_reg (.in(x_rs), .out(m_rs), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+   Nbit_reg m_rt_reg (.in(x_rt), .out(m_rt), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+
+    // Write to the memory
+   memory_unit m(
+      .is_store(m_is_store), .is_load(m_is_load), 
+      .o_alu(m_alu),
+      .o_dmem_we(m_dmem_we),
+      .o_dmem_addr(m_dmem_addr), .o_dmem_towrite(m_dmem_towrite), .o_rt(m_rt)
+   );
+
+   // W: Writeback
+   wire [15:0] w_insn;
+   wire [15:0] w_pc;
+   wire [15:0] w_dmew_data;
+
+   wire [2:0] w_r1sel, w_r2sel, w_wsel;
+   wire w_r1re, w_r2re, w_regfile_we, w_nzp_we, w_select_pc_plus_one, w_is_load, w_is_store, w_is_branch, w_is_control_insn; 
+   wire [15:0] w_rs, w_rt;
+   wire [15:0] w_dmew_towrite;
+
+   wire [2:0]   w_nzp; // where you read the current nzp
+   wire [2:0]   w_next_nzp;
+
+   Nbit_reg w_is_store_reg (.in(m_is_store), .out(w_is_store), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+   Nbit_reg w_is_load_reg (.in(m_is_load), .out(w_is_load), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+   Nbit_reg w_alu_reg (.in(m_alu), .out(w_alu), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+   Nbit_reg w_dmew_we_reg (.in(m_dmew_we), .out(w_dmew_we), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+   Nbit_reg w_dmew_addr_reg (.in(m_dmew_addr), .out(w_dmew_addr), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+   Nbit_reg w_rs_reg (.in(m_rs), .out(w_rs), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+   Nbit_reg w_rt_reg (.in(m_rt), .out(w_rt), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+
+   Nbit_reg w_rs_reg (.in(m_r1sel), .out(w_r1sel), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+   Nbit_reg w_rt_reg (.in(m_r2sel), .out(w_r2sel), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+   Nbit_reg w_wsel_reg (.in(m_wsel), .out(w_wsel), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+   Nbit_reg w_wdata_reg (.in(m_wdata), .out(w_wdata), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+   Nbit_reg w_regfile_we_reg (.in(m_regfile_we), .out(w_regfile_we), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+   Nbit_reg w_nzp_reg (.in(m_nzp), .out(w_nzp), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
 
    // make the registers
    lc4_regfile r(
       .clk(clk),
       .gwe(gwe),
       .rst(rst),
-      .i_rs(r1sel),      // rs selector
-      .o_rs_data(o_rs), // rs contents
-      .i_rt(r2sel),      // rt selector
-      .o_rt_data(o_rt), // rt contents
-      .i_rd(wsel),      // rd selector
-      .i_wdata(i_wdata),   // data to write
-      .i_rd_we(regfile_we)
+      .i_rs(w_r1sel),      // rs selector
+      .o_rs_data(w_rs), // rs contents
+      .i_rt(w_r2sel),      // rt selector
+      .o_rt_data(w_rt), // rt contents
+      .i_rd(w_wsel),      // rd selector
+      .i_wdata(w_wdata),   // data to write
+      .i_rd_we(w_regfile_we)
    );
 
    // Make the NZP register
-   wire [2:0]   nzp; // where you read the current nzp
-   wire [2:0]   next_nzp;
+   
    Nbit_reg #(3, 3'd0) nzp_reg (
-      .in(next_nzp), 
-      .out(nzp), 
+      .in(w_next_nzp), 
+      .out(w_nzp), 
       .clk(clk), 
-      .we(nzp_we), 
+      .we(w_nzp_we), 
       .gwe(gwe), 
       .rst(rst)
    );
 
-   // Increment PC
-   wire [15:0] pc_plus_one;
-
-   cla16 a(.a(pc), .b(16'd0), .cin(1'b1), .sum(pc_plus_one));
-
-   wire [15:0] o_alu;
-   // Run the ALU
-   lc4_alu alu(
-      .i_insn(i_cur_insn), 
-      .i_pc(pc), 
-      .i_r1data(o_rs), 
-      .i_r2data(o_rt), 
-      .o_result(o_alu)
-   );
-
    // Update the NZP bits from the ALU
    nzp_unit n(
-      .i_wdata(i_wdata),
-      .nzp(nzp),
-      .next_nzp(next_nzp)
+      .i_wdata(w_wdata),
+      .nzp(w_nzp),
+      .next_nzp(w_next_nzp)
    );
 
-   // write to the register
-   assign i_wdata = is_load ? i_cur_dmem_data : (select_pc_plus_one ? pc_plus_one : o_alu);
-
-   // Write to the memory
-   memory_unit m(
-      .is_store(is_store), .is_load(is_load), 
-      .o_alu(o_alu),
-      .o_dmem_we(o_dmem_we),
-      .o_dmem_addr(o_dmem_addr), .o_dmem_towrite(o_dmem_towrite), .o_rt(o_rt)
-   );
-
-   // branch logic!
-   wire nzp_result = ((nzp & i_cur_insn[11:9]) != 3'b0);
-   
-   // New
-   wire [15:0] jmp_tgt = is_control_insn ? o_alu : pc_plus_one;
-   assign next_pc = (is_branch & nzp_result) ? o_alu : jmp_tgt;
-
+   // TEST SIGNALS    
    // assign the current pc
    assign o_cur_pc = pc;
 
@@ -187,10 +271,6 @@ module lc4_processor
    assign test_dmem_addr = o_dmem_addr;
    assign test_dmem_data = is_store ? o_dmem_towrite : (is_load ? i_cur_dmem_data : 16'd0) ;
 
-   /*******************************
-    * TODO: INSERT YOUR CODE HERE *
-    *******************************/
-
    /* Add $display(...) calls in the always block below to
     * print out debug information at the end of every cycle.
     * 
@@ -202,10 +282,11 @@ module lc4_processor
     */
 `ifndef NDEBUG
    always @(posedge gwe) begin
+      /*
       $display("%d %h %h %h %h %h", $time, f_pc, d_pc, e_pc, m_pc, test_cur_pc);
       if (o_dmem_we)
          $display("%d STORE %h <= %h", $time, o_dmem_addr, o_dmem_towrite);
-
+        */
       // Start each $display() format string with a %d argument for time
       // it will make the output easier to read.  Use %b, %h, and %d
       // for binary, hex, and decimal output of additional variables.
