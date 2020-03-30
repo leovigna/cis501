@@ -228,21 +228,28 @@ module lc4_processor
 
    // Load Pipeline data
    insn_pipeline FD_pipeline( 
-       .in_insn(f_insn), .in_pc(f_pc), .in_dmem_data(f_dmem_data), .in_nzp(f_nzp),
-       .in_stall(f_stall),
-       .out_insn(d_insn), .out_pc(d_pc), .out_dmem_data(d_dmem_data), .out_nzp(d_nzp),
-       .out_stall(d_stall),
-       .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+      .in_insn(f_insn), .in_pc(f_pc), .in_dmem_data(f_dmem_data), .in_nzp(f_nzp),
+      .in_stall(f_stall),
+      .out_insn(d_insn), .out_pc(d_pc), .out_dmem_data(d_dmem_data), .out_nzp(d_nzp),
+      .out_stall(d_stall),
+      .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst)
+   );
 
    //Bypassing
-   // TODO: Test
-   // TODO: yeah, not sure what the logic is here with w_wsel
+   // TODO: This code wasn't working, so I commented out not necessary 
+   
    wire wd_bypass_rs, wd_bypass_rt;
    assign wd_bypass_rs = (w_wsel == d_r1sel);
    assign wd_bypass_rt = (w_wsel == d_r2sel);
    assign d_rs = wd_bypass_rs ? w_rs : d_rs_default;
    assign d_rt = wd_bypass_rt ? w_rt : d_rt_default;
    
+   // And just made it do the default for now
+   //assign d_rs = d_rs_default;
+   //assign d_rt = d_rt_default;
+
+
+
    // Compute
    lc4_decoder d(
       .insn(d_insn),
@@ -302,31 +309,34 @@ module lc4_processor
    wire mx_bypass_rs, mx_bypass_rt, wx_bypass_rs, wx_bypass_rt;
    assign mx_bypass_rs = m_is_load && (m_wsel == x_r1sel);
    assign mx_bypass_rt = m_is_load && (m_wsel == x_r2sel);
-   assign wx_bypass_rs = w_wsel == x_rs;
-   assign wx_bypass_rt = w_wsel == x_rt;
+   // TODO: for some reason, the following two lines cause
+   // the entire simulation to hang after the first cycle. Not sure why!
+   assign wx_bypass_rs = 0; //(w_wsel == x_rs);
+   assign wx_bypass_rt = 0; //(w_wsel == x_rt); 
 
    assign x_rs = mx_bypass_rs ? m_wdata : (wx_bypass_rs ? w_wdata : x_rs_default);
    assign x_rt = mx_bypass_rt ? m_wdata : (wx_bypass_rt ? w_wdata : x_rt_default);
 
    // Load Pipeline data
    insn_pipeline DX_pipeline( 
-       .in_insn(d_insn), .in_pc(d_pc), .in_dmem_data(d_dmem_data), .in_nzp(d_nzp),
-       //.in_r1sel(d_r1sel), .in_r2sel(d_r2sel), .in_wsel(d_wsel), // .in_nzp(), TODO: add NZP?
-       .in_r1re(d_r1re), .in_r2re(d_r2re), .in_rs(d_rs), .in_rt(d_rt),
-       .in_regfile_we(d_regfile_we), .in_nzp_we(d_nzp_we), 
-       .in_select_pc_plus_one(d_select_pc_plus_one), 
-       .in_is_load(d_is_load), .in_is_store(d_is_store), .in_is_branch(d_is_branch), 
-       .in_is_control_insn(d_is_control_insn),
-       .in_stall(d_stall),
-       .out_insn(x_insn), .out_pc(x_pc), .out_dmem_data(x_dmem_data), .out_nzp(x_nzp),
-       //.out_r1sel(x_r1sel), .out_r2sel(x_r2sel), .out_wsel(x_wsel), // .in_nzp(), TODO: add NZP?
-       .out_r1re(x_r1re), .out_r2re(x_r2re), .out_rs(x_rs_default), .out_rt(x_rt_default),
-       .out_regfile_we(x_regfile_we), .out_nzp_we(x_nzp_we), 
-       .out_select_pc_plus_one(x_select_pc_plus_one), 
-       .out_is_load(x_is_load), .out_is_store(x_is_store), .out_is_branch(x_is_branch), 
-       .out_is_control_insn(x_is_control_insn),
-       .out_stall(x_stall_default),
-       .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+      .in_insn(d_insn), .in_pc(d_pc), .in_dmem_data(d_dmem_data), .in_nzp(d_nzp),
+      .in_r1sel(d_r1sel), .in_r2sel(d_r2sel), .in_wsel(d_wsel), // .in_nzp(), TODO: add NZP?
+      .in_r1re(d_r1re), .in_r2re(d_r2re), .in_rs(d_rs), .in_rt(d_rt),
+      .in_regfile_we(d_regfile_we), .in_nzp_we(d_nzp_we), 
+      .in_select_pc_plus_one(d_select_pc_plus_one), 
+      .in_is_load(d_is_load), .in_is_store(d_is_store), .in_is_branch(d_is_branch), 
+      .in_is_control_insn(d_is_control_insn),
+      .in_stall(d_stall),
+      .out_insn(x_insn), .out_pc(x_pc), .out_dmem_data(x_dmem_data), .out_nzp(x_nzp),
+      .out_r1sel(x_r1sel), .out_r2sel(x_r2sel), .out_wsel(x_wsel), // .in_nzp(), TODO: add NZP?
+      .out_r1re(x_r1re), .out_r2re(x_r2re), .out_rs(x_rs_default), .out_rt(x_rt_default),
+      .out_regfile_we(x_regfile_we), .out_nzp_we(x_nzp_we), 
+      .out_select_pc_plus_one(x_select_pc_plus_one), 
+      .out_is_load(x_is_load), .out_is_store(x_is_store), .out_is_branch(x_is_branch), 
+      .out_is_control_insn(x_is_control_insn),
+      .out_stall(x_stall_default),
+      .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst)
+   );
 
    // Increment PC
    cla16 a(.a(x_pc), .b(16'd0), .cin(1'b1), .sum(x_pc_plus_one));
@@ -380,27 +390,28 @@ module lc4_processor
    assign m_rt = wm_bypass_rt ? w_wdata : m_rt_default;
 
    insn_pipeline XM_pipeline( 
-       .in_insn(x_insn), .in_pc(x_pc), .in_dmem_data(x_dmem_data), .in_nzp(x_nzp),
-       //.in_r1sel(x_r1sel), .in_r2sel(x_r2sel), .in_wsel(x_wsel), // .in_nzp(), TODO: add NZP?
-       .in_r1re(x_r1re), .in_r2re(x_r2re), 
-       .in_regfile_we(x_regfile_we), .in_nzp_we(x_nzp_we), 
-       .in_select_pc_plus_one(x_select_pc_plus_one), 
-       .in_is_load(x_is_load), .in_is_store(x_is_store), .in_is_branch(x_is_branch), 
-       .in_is_control_insn(x_is_control_insn),
-       .in_rs(x_rs), .in_rt(x_rt), .in_alu(x_alu), .in_wdata(x_wdata), .in_next_pc(x_next_pc),
-       .in_nzp_result(x_nzp_result),
-       .in_stall(x_stall),
-       .out_insn(m_insn), .out_pc(m_pc), .out_dmem_data(m_dmem_data), .out_nzp(m_nzp),
-       //.out_r1sel(m_r1sel), .out_r2sel(m_r2sel), .out_wsel(m_wsel), // .in_nzp(), TODO: add NZP?
-       .out_r1re(m_r1re), .out_r2re(m_r2re), 
-       .out_regfile_we(m_regfile_we), .out_nzp_we(m_nzp_we), 
-       .out_select_pc_plus_one(m_select_pc_plus_one), 
-       .out_is_load(m_is_load), .out_is_store(m_is_store), .out_is_branch(m_is_branch), 
-       .out_is_control_insn(m_is_control_insn),
-       .out_rs(m_rs_default), .out_rt(m_rt_default), .out_alu(m_alu), .out_wdata(m_wdata), .out_next_pc(m_next_pc),
-       .out_nzp_result(m_nzp_result),
-       .out_stall(m_stall),
-       .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+      .in_insn(x_insn), .in_pc(x_pc), .in_dmem_data(x_dmem_data), .in_nzp(x_nzp),
+      .in_r1sel(x_r1sel), .in_r2sel(x_r2sel), .in_wsel(x_wsel), // .in_nzp(), TODO: add NZP?
+      .in_r1re(x_r1re), .in_r2re(x_r2re), 
+      .in_regfile_we(x_regfile_we), .in_nzp_we(x_nzp_we), 
+      .in_select_pc_plus_one(x_select_pc_plus_one), 
+      .in_is_load(x_is_load), .in_is_store(x_is_store), .in_is_branch(x_is_branch), 
+      .in_is_control_insn(x_is_control_insn),
+      .in_rs(x_rs), .in_rt(x_rt), .in_alu(x_alu), .in_wdata(x_wdata), .in_next_pc(x_next_pc),
+      .in_nzp_result(x_nzp_result),
+      .in_stall(x_stall),
+      .out_insn(m_insn), .out_pc(m_pc), .out_dmem_data(m_dmem_data), .out_nzp(m_nzp),
+      .out_r1sel(m_r1sel), .out_r2sel(m_r2sel), .out_wsel(m_wsel), // .in_nzp(), TODO: add NZP?
+      .out_r1re(m_r1re), .out_r2re(m_r2re), 
+      .out_regfile_we(m_regfile_we), .out_nzp_we(m_nzp_we), 
+      .out_select_pc_plus_one(m_select_pc_plus_one), 
+      .out_is_load(m_is_load), .out_is_store(m_is_store), .out_is_branch(m_is_branch), 
+      .out_is_control_insn(m_is_control_insn),
+      .out_rs(m_rs_default), .out_rt(m_rt_default), .out_alu(m_alu), .out_wdata(m_wdata), .out_next_pc(m_next_pc),
+      .out_nzp_result(m_nzp_result),
+      .out_stall(m_stall),
+      .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst)
+   );
 
     // Write to the memory
    memory_unit m(
@@ -433,28 +444,29 @@ module lc4_processor
 
    // Computed
    insn_pipeline MW_pipeline( 
-       .in_insn(m_insn), .in_pc(m_pc), .in_dmem_data(m_dmem_data), .in_nzp(m_nzp),
-       //.in_r1re(m_r1re), .in_r2re(m_r2re), .in_wsel(m_wsel), // .in_nzp(), TODO: add NZP?
-       .in_regfile_we(m_regfile_we), .in_nzp_we(m_nzp_we), 
-       .in_select_pc_plus_one(m_select_pc_plus_one), 
-       .in_is_load(m_is_load), .in_is_store(m_is_store), .in_is_branch(m_is_branch), 
-       .in_is_control_insn(m_is_control_insn),
-       .in_rs(m_rs), .in_rt(m_rt), .in_alu(m_alu), .in_wdata(m_wdata), .in_next_pc(m_next_pc),
-       .in_nzp_result(m_nzp_result),
-       .in_dmem_we(m_dmem_we), .in_dmem_addr(m_dmem_addr), .in_dmem_towrite(m_dmem_towrite),
-       .in_stall(m_stall),
-       .out_insn(w_insn), .out_pc(w_pc), .out_dmem_data(w_dmem_data), .out_nzp(w_nzp),
-       //.out_r1sel(w_r1sel), .out_r2sel(w_r2sel), .out_wsel(w_wsel), // .in_nzp(), TODO: add NZP?
-       .out_r1re(w_r1re), .out_r2re(w_r2re), 
-       .out_regfile_we(w_regfile_we), .out_nzp_we(w_nzp_we), 
-       .out_select_pc_plus_one(w_select_pc_plus_one), 
-       .out_is_load(w_is_load), .out_is_store(w_is_store), .out_is_branch(w_is_branch), 
-       .out_is_control_insn(w_is_control_insn),
-       .out_rs(w_rs), .out_rt(w_rt), .out_alu(w_alu), .out_wdata(w_wdata), .out_next_pc(w_next_pc),
-       .out_nzp_result(w_nzp_result),
-       .out_dmem_we(w_dmem_we), .out_dmem_addr(w_dmem_addr), .out_dmem_towrite(w_dmem_towrite),
-       .out_stall(w_stall),
-       .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+      .in_insn(m_insn), .in_pc(m_pc), .in_dmem_data(m_dmem_data), .in_nzp(m_nzp),
+      .in_r1re(m_r1re), .in_r2re(m_r2re), .in_wsel(m_wsel), // .in_nzp(), TODO: add NZP?
+      .in_regfile_we(m_regfile_we), .in_nzp_we(m_nzp_we), 
+      .in_select_pc_plus_one(m_select_pc_plus_one), 
+      .in_is_load(m_is_load), .in_is_store(m_is_store), .in_is_branch(m_is_branch), 
+      .in_is_control_insn(m_is_control_insn),
+      .in_rs(m_rs), .in_rt(m_rt), .in_alu(m_alu), .in_wdata(m_wdata), .in_next_pc(m_next_pc),
+      .in_nzp_result(m_nzp_result),
+      .in_dmem_we(m_dmem_we), .in_dmem_addr(m_dmem_addr), .in_dmem_towrite(m_dmem_towrite),
+      .in_stall(m_stall),
+      .out_insn(w_insn), .out_pc(w_pc), .out_dmem_data(w_dmem_data), .out_nzp(w_nzp),
+      .out_r1sel(w_r1sel), .out_r2sel(w_r2sel), .out_wsel(w_wsel), // .in_nzp(), TODO: add NZP?
+      .out_r1re(w_r1re), .out_r2re(w_r2re), 
+      .out_regfile_we(w_regfile_we), .out_nzp_we(w_nzp_we), 
+      .out_select_pc_plus_one(w_select_pc_plus_one), 
+      .out_is_load(w_is_load), .out_is_store(w_is_store), .out_is_branch(w_is_branch), 
+      .out_is_control_insn(w_is_control_insn),
+      .out_rs(w_rs), .out_rt(w_rt), .out_alu(w_alu), .out_wdata(w_wdata), .out_next_pc(w_next_pc),
+      .out_nzp_result(w_nzp_result),
+      .out_dmem_we(w_dmem_we), .out_dmem_addr(w_dmem_addr), .out_dmem_towrite(w_dmem_towrite),
+      .out_stall(w_stall),
+      .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst)
+   );
 
 
    // Make the NZP register
@@ -501,6 +513,7 @@ module lc4_processor
       $display("%d PCs: %h, %h, %h, %h, %h", $time, f_pc, d_pc, x_pc, m_pc, w_pc);
       $display("%d Stalls: %h, %h, %h, %h, %h", $time, f_stall, d_stall, x_stall, m_stall, w_stall);
       $display("%d regfile we: __, %h, %h, %h, %h", $time, d_regfile_we, x_regfile_we, m_regfile_we, w_regfile_we);
+      $display("%d regfile_reg should be: __, %h, %h, %h, %h", $time, d_wsel, x_wsel, m_wsel, w_wsel);
 
       // Start each $display() format string with a %d argument for time
       // it will make the output easier to read.  Use %b, %h, and %d
