@@ -1,0 +1,187 @@
+echo \`define INPUT_FILE \"/mnt/castor/seas_home/n/narush/501clone/cis501/lab4-pipeline/test_data/test_alu.ctrace\" > .set_testcase.v
+echo \`define OUTPUT_FILE \"/mnt/castor/seas_home/n/narush/501clone/cis501/lab4-pipeline/test_data/test_alu.output\" >> .set_testcase.v
+echo \`define ORIG_INPUT_FILE \"/mnt/castor/seas_home/n/narush/501clone/cis501/lab4-pipeline/test_data/test_alu.trace\" >> .set_testcase.v
+echo \`define MEMORY_IMAGE_FILE \"/mnt/castor/seas_home/n/narush/501clone/cis501/lab4-pipeline/test_data/test_alu.hex\" >> .set_testcase.v
+echo \`define TEST_CASE \"test_alu\" >> .set_testcase.v
+rm -rf xsim.dir/
+echo -n verilog mylib .set_testcase.v lc4_alu.v lc4_cla.v lc4_decoder.v lc4_divider.v lc4_regfile.v lc4_pipeline.v include/register.v include/lc4_memory.v include/clock_util.v include/delay_eight_cycles.v include/bram.v testbench_lc4_processor.v > .prj
+xelab -cc gcc --debug off --prj .prj --snapshot snapshot.sim --lib mylib mylib.test_processor
+Vivado Simulator 2017.4
+Copyright 1986-1999, 2001-2016 Xilinx, Inc. All Rights Reserved.
+Running: /home1/c/cis371/software/Vivado/2017.4/bin/unwrapped/lnx64.o/xelab -cc gcc --debug off --prj .prj --snapshot snapshot.sim --lib mylib mylib.test_processor 
+Multi-threading is on. Using 6 slave threads.
+INFO: [VRFC 10-2263] Analyzing Verilog file "/mnt/castor/seas_home/n/narush/501clone/cis501/lab4-pipeline/.set_testcase.v" into library mylib
+INFO: [VRFC 10-2263] Analyzing Verilog file "/mnt/castor/seas_home/n/narush/501clone/cis501/lab4-pipeline/lc4_alu.v" into library mylib
+INFO: [VRFC 10-311] analyzing module lc4_divider
+INFO: [VRFC 10-311] analyzing module lc4_divider_one_iter
+INFO: [VRFC 10-311] analyzing module gp1
+INFO: [VRFC 10-311] analyzing module gp4
+INFO: [VRFC 10-311] analyzing module cla4
+INFO: [VRFC 10-311] analyzing module cla16
+INFO: [VRFC 10-311] analyzing module lc4_alu_ctl
+INFO: [VRFC 10-311] analyzing module lc4_alu_out
+INFO: [VRFC 10-311] analyzing module lc4_arith
+INFO: [VRFC 10-311] analyzing module lc4_cmp
+INFO: [VRFC 10-311] analyzing module lc4_const
+INFO: [VRFC 10-311] analyzing module lc4_log
+INFO: [VRFC 10-311] analyzing module lc4_shift
+INFO: [VRFC 10-311] analyzing module lc4_trap
+INFO: [VRFC 10-311] analyzing module lc4_jmp
+INFO: [VRFC 10-311] analyzing module lc4_br
+INFO: [VRFC 10-311] analyzing module lc4_jsr
+INFO: [VRFC 10-311] analyzing module lc4_alu
+INFO: [VRFC 10-2263] Analyzing Verilog file "/mnt/castor/seas_home/n/narush/501clone/cis501/lab4-pipeline/lc4_cla.v" into library mylib
+INFO: [VRFC 10-311] analyzing module gp1
+WARNING: [VRFC 10-2421] module gp1 is previously defined, ignoring this definition [/mnt/castor/seas_home/n/narush/501clone/cis501/lab4-pipeline/lc4_cla.v:12]
+INFO: [VRFC 10-311] analyzing module gp4
+WARNING: [VRFC 10-2421] module gp4 is previously defined, ignoring this definition [/mnt/castor/seas_home/n/narush/501clone/cis501/lab4-pipeline/lc4_cla.v:27]
+INFO: [VRFC 10-311] analyzing module cla4
+WARNING: [VRFC 10-2421] module cla4 is previously defined, ignoring this definition [/mnt/castor/seas_home/n/narush/501clone/cis501/lab4-pipeline/lc4_cla.v:49]
+INFO: [VRFC 10-311] analyzing module cla16
+WARNING: [VRFC 10-2421] module cla16 is previously defined, ignoring this definition [/mnt/castor/seas_home/n/narush/501clone/cis501/lab4-pipeline/lc4_cla.v:89]
+INFO: [VRFC 10-2263] Analyzing Verilog file "/mnt/castor/seas_home/n/narush/501clone/cis501/lab4-pipeline/lc4_decoder.v" into library mylib
+INFO: [VRFC 10-311] analyzing module lc4_decoder
+INFO: [VRFC 10-2263] Analyzing Verilog file "/mnt/castor/seas_home/n/narush/501clone/cis501/lab4-pipeline/lc4_divider.v" into library mylib
+INFO: [VRFC 10-311] analyzing module lc4_divider
+WARNING: [VRFC 10-2421] module lc4_divider is previously defined, ignoring this definition [/mnt/castor/seas_home/n/narush/501clone/cis501/lab4-pipeline/lc4_divider.v:8]
+INFO: [VRFC 10-311] analyzing module lc4_divider_one_iter
+WARNING: [VRFC 10-2421] module lc4_divider_one_iter is previously defined, ignoring this definition [/mnt/castor/seas_home/n/narush/501clone/cis501/lab4-pipeline/lc4_divider.v:40]
+INFO: [VRFC 10-2263] Analyzing Verilog file "/mnt/castor/seas_home/n/narush/501clone/cis501/lab4-pipeline/lc4_regfile.v" into library mylib
+INFO: [VRFC 10-311] analyzing module Nbit_reg
+INFO: [VRFC 10-311] analyzing module lc4_regfile
+INFO: [VRFC 10-2263] Analyzing Verilog file "/mnt/castor/seas_home/n/narush/501clone/cis501/lab4-pipeline/lc4_pipeline.v" into library mylib
+INFO: [VRFC 10-311] analyzing module nzp_unit
+INFO: [VRFC 10-311] analyzing module memory_unit
+INFO: [VRFC 10-311] analyzing module insn_pipeline
+INFO: [VRFC 10-311] analyzing module lc4_processor
+WARNING: [VRFC 10-756] identifier w_wsel is used before its declaration [/mnt/castor/seas_home/n/narush/501clone/cis501/lab4-pipeline/lc4_pipeline.v:241]
+WARNING: [VRFC 10-756] identifier w_wsel is used before its declaration [/mnt/castor/seas_home/n/narush/501clone/cis501/lab4-pipeline/lc4_pipeline.v:242]
+WARNING: [VRFC 10-756] identifier w_rs is used before its declaration [/mnt/castor/seas_home/n/narush/501clone/cis501/lab4-pipeline/lc4_pipeline.v:243]
+WARNING: [VRFC 10-756] identifier w_rt is used before its declaration [/mnt/castor/seas_home/n/narush/501clone/cis501/lab4-pipeline/lc4_pipeline.v:244]
+WARNING: [VRFC 10-756] identifier m_is_load is used before its declaration [/mnt/castor/seas_home/n/narush/501clone/cis501/lab4-pipeline/lc4_pipeline.v:303]
+WARNING: [VRFC 10-756] identifier m_is_load is used before its declaration [/mnt/castor/seas_home/n/narush/501clone/cis501/lab4-pipeline/lc4_pipeline.v:304]
+WARNING: [VRFC 10-756] identifier w_wsel is used before its declaration [/mnt/castor/seas_home/n/narush/501clone/cis501/lab4-pipeline/lc4_pipeline.v:305]
+WARNING: [VRFC 10-756] identifier w_wsel is used before its declaration [/mnt/castor/seas_home/n/narush/501clone/cis501/lab4-pipeline/lc4_pipeline.v:306]
+WARNING: [VRFC 10-756] identifier m_wdata is used before its declaration [/mnt/castor/seas_home/n/narush/501clone/cis501/lab4-pipeline/lc4_pipeline.v:308]
+WARNING: [VRFC 10-756] identifier m_wdata is used before its declaration [/mnt/castor/seas_home/n/narush/501clone/cis501/lab4-pipeline/lc4_pipeline.v:309]
+WARNING: [VRFC 10-756] identifier w_is_load is used before its declaration [/mnt/castor/seas_home/n/narush/501clone/cis501/lab4-pipeline/lc4_pipeline.v:377]
+WARNING: [VRFC 10-756] identifier w_is_load is used before its declaration [/mnt/castor/seas_home/n/narush/501clone/cis501/lab4-pipeline/lc4_pipeline.v:378]
+WARNING: [VRFC 10-756] identifier w_wdata is used before its declaration [/mnt/castor/seas_home/n/narush/501clone/cis501/lab4-pipeline/lc4_pipeline.v:379]
+WARNING: [VRFC 10-756] identifier w_wdata is used before its declaration [/mnt/castor/seas_home/n/narush/501clone/cis501/lab4-pipeline/lc4_pipeline.v:380]
+INFO: [VRFC 10-2263] Analyzing Verilog file "/mnt/castor/seas_home/n/narush/501clone/cis501/lab4-pipeline/include/register.v" into library mylib
+INFO: [VRFC 10-311] analyzing module Nbit_reg
+WARNING: [VRFC 10-2421] module Nbit_reg is previously defined, ignoring this definition [/mnt/castor/seas_home/n/narush/501clone/cis501/lab4-pipeline/include/register.v:14]
+INFO: [VRFC 10-2263] Analyzing Verilog file "/mnt/castor/seas_home/n/narush/501clone/cis501/lab4-pipeline/include/lc4_memory.v" into library mylib
+INFO: [VRFC 10-311] analyzing module lc4_memory
+INFO: [VRFC 10-2263] Analyzing Verilog file "/mnt/castor/seas_home/n/narush/501clone/cis501/lab4-pipeline/include/clock_util.v" into library mylib
+INFO: [VRFC 10-311] analyzing module count
+INFO: [VRFC 10-311] analyzing module lc4_we_gen
+INFO: [VRFC 10-2263] Analyzing Verilog file "/mnt/castor/seas_home/n/narush/501clone/cis501/lab4-pipeline/include/delay_eight_cycles.v" into library mylib
+INFO: [VRFC 10-311] analyzing module delay_eight_cycles
+INFO: [VRFC 10-2263] Analyzing Verilog file "/mnt/castor/seas_home/n/narush/501clone/cis501/lab4-pipeline/include/bram.v" into library mylib
+INFO: [VRFC 10-311] analyzing module bram
+INFO: [VRFC 10-2263] Analyzing Verilog file "/mnt/castor/seas_home/n/narush/501clone/cis501/lab4-pipeline/testbench_lc4_processor.v" into library mylib
+INFO: [VRFC 10-311] analyzing module test_processor
+Starting static elaboration
+WARNING: [VRFC 10-1770] port i2out remains unconnected for this instance [/mnt/castor/seas_home/n/narush/501clone/cis501/lab4-pipeline/testbench_lc4_processor.v:75]
+WARNING: [VRFC 10-1770] port led_data remains unconnected for this instance [/mnt/castor/seas_home/n/narush/501clone/cis501/lab4-pipeline/testbench_lc4_processor.v:94]
+WARNING: [VRFC 10-1770] port in_rs remains unconnected for this instance [/mnt/castor/seas_home/n/narush/501clone/cis501/lab4-pipeline/lc4_pipeline.v:206]
+WARNING: [VRFC 10-1770] port in_rs remains unconnected for this instance [/mnt/castor/seas_home/n/narush/501clone/cis501/lab4-pipeline/lc4_pipeline.v:230]
+WARNING: [VRFC 10-1770] port in_alu remains unconnected for this instance [/mnt/castor/seas_home/n/narush/501clone/cis501/lab4-pipeline/lc4_pipeline.v:312]
+WARNING: [VRFC 10-1770] port in_jmp_tgt remains unconnected for this instance [/mnt/castor/seas_home/n/narush/501clone/cis501/lab4-pipeline/lc4_pipeline.v:382]
+WARNING: [VRFC 10-1770] port in_jmp_tgt remains unconnected for this instance [/mnt/castor/seas_home/n/narush/501clone/cis501/lab4-pipeline/lc4_pipeline.v:435]
+Completed static elaboration
+Starting simulation data flow analysis
+Completed simulation data flow analysis
+Time Resolution for simulation is 1ps
+Compiling module mylib.count
+Compiling module mylib.lc4_we_gen
+Compiling module mylib.Nbit_reg(n=16,r=16'b0)
+Compiling module mylib.bram
+Compiling module mylib.Nbit_reg(n=16)
+Compiling module mylib.delay_eight_cycles(n=16)
+Compiling module mylib.lc4_memory
+Compiling module mylib.Nbit_reg(n=16,r=16'b100000100000...
+Compiling module mylib.Nbit_reg(n=3)
+Compiling module mylib.Nbit_reg
+Compiling module mylib.Nbit_reg(n=2,r=2)
+Compiling module mylib.insn_pipeline
+Compiling module mylib.lc4_decoder
+Compiling module mylib.lc4_regfile_default
+Compiling module mylib.gp1
+Compiling module mylib.gp4
+Compiling module mylib.cla4
+Compiling module mylib.cla16
+Compiling module mylib.lc4_alu_ctl
+Compiling module mylib.lc4_divider_one_iter
+Compiling module mylib.lc4_divider_default
+Compiling module mylib.lc4_arith
+Compiling module mylib.lc4_cmp
+Compiling module mylib.lc4_const
+Compiling module mylib.lc4_log
+Compiling module mylib.lc4_shift
+Compiling module mylib.lc4_jmp
+Compiling module mylib.lc4_trap
+Compiling module mylib.lc4_br
+Compiling module mylib.lc4_jsr
+Compiling module mylib.lc4_alu_out
+Compiling module mylib.lc4_alu
+Compiling module mylib.memory_unit
+Compiling module mylib.lc4_processor
+Compiling module mylib.test_processor
+Built simulation snapshot snapshot.sim
+
+****** Webtalk v2017.4 (64-bit)
+  **** SW Build 2086221 on Fri Dec 15 20:54:30 MST 2017
+  **** IP Build 2085800 on Fri Dec 15 22:25:07 MST 2017
+    ** Copyright 1986-2017 Xilinx, Inc. All Rights Reserved.
+
+source /mnt/castor/seas_home/n/narush/501clone/cis501/lab4-pipeline/xsim.dir/snapshot.sim/webtalk/xsim_webtalk.tcl -notrace
+INFO: [Common 17-206] Exiting Webtalk at Mon Mar 30 14:08:49 2020...
+xsim snapshot.sim --runall --stats -wdb sim.wdb
+
+****** xsim v2017.4 (64-bit)
+  **** SW Build 2086221 on Fri Dec 15 20:54:30 MST 2017
+  **** IP Build 2085800 on Fri Dec 15 22:25:07 MST 2017
+    ** Copyright 1986-2017 Xilinx, Inc. All Rights Reserved.
+
+source xsim.dir/snapshot.sim/xsim_script.tcl
+# xsim {snapshot.sim} -wdb {sim.wdb} -autoloadwcfg -runall -stats
+Vivado Simulator 2017.4
+Time resolution is 1 ps
+run -all
+Info: /mnt/castor/seas_home/n/narush/501clone/cis501/lab4-pipeline/test_data/test_alu.hex
+Time: 0 ps  Iteration: 0  Process: /test_processor/memory/memory/Initial42_3  File: /mnt/castor/seas_home/n/narush/501clone/cis501/lab4-pipeline/include/bram.v
+                  26 PC: xxxx, Instruction: 0000
+                  26 Instructions: xxxx, xxxx, xxxx, xxxx, xxxx
+                  26 PCs: xxxx, xxxx, xxxx, xxxx, xxxx
+                  26 Stalls: 0, x, x, x, x
+                  26 regfile we: __, x, x, x, x
+                  66 PC: 8200, Instruction: 0000
+                  66 Instructions: 0000, 0000, 0000, 0000, 0000
+                  66 PCs: 8200, 8200, 8200, 8200, 8200
+                  66 Stalls: 0, 2, 2, 2, 2
+                  66 regfile we: __, 0, 0, 0, 0
+                 106 PC: 8200, Instruction: 9010
+                 106 Instructions: 0000, 0000, 0000, 0000, 0000
+                 106 PCs: 8200, 8200, 8200, 8200, 8200
+                 106 Stalls: 0, 2, 2, 2, 2
+                 106 regfile we: __, 0, 0, 0, 0
+Cycle number:           0
+                 146 PC: 8200, Instruction: 9010
+                 146 Instructions: 9010, 0000, 0000, 0000, 0000
+                 146 PCs: 8200, 8200, 8200, 8200, 8200
+                 146 Stalls: 0, 0, 2, 2, 2
+                 146 regfile we: __, 0, 0, 0, 0
+Cycle number:           1
+INFO: [Common 17-41] Interrupt caught. Command should exit soon.
+run: Time (s): cpu = 00:00:00.01 ; elapsed = 00:01:24 . Memory (MB): peak = 1211.176 ; gain = 72.004 ; free physical = 131 ; free virtual = 5097
+INFO: [Common 17-344] 'run' was cancelled
+exit
+INFO: Simulation Memory Usage: 5097884 KB (Peak: 5097884 KB)
+INFO: Simulation CPU Usage: 84020 ms
+INFO: [Common 17-41] Interrupt caught. Command should exit soon.
+INFO: [Common 17-41] Interrupt caught. Command should exit soon.
+INFO: [Common 17-206] Exiting xsim at Mon Mar 30 14:10:23 2020...
+Abnormal program termination (6)
+Please check '/mnt/castor/seas_home/n/narush/501clone/cis501/lab4-pipeline/hs_err_pid17405.log' for details

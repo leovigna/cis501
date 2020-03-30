@@ -236,6 +236,7 @@ module lc4_processor
 
    //Bypassing
    // TODO: Test
+   // TODO: yeah, not sure what the logic is here with w_wsel
    wire wd_bypass_rs, wd_bypass_rt;
    assign wd_bypass_rs = (w_wsel == d_r1sel);
    assign wd_bypass_rt = (w_wsel == d_r2sel);
@@ -270,8 +271,9 @@ module lc4_processor
       .o_rt_data(d_rt_default), // rt contents
       .i_rd(w_wsel),      // rd selector (Write phase)
       .i_wdata(w_wdata),   // data to write (Write phase)
-      .i_rd_we(w_regfile_we)
+      .i_rd_we(w_regfile_we)  
    );
+   // TODO: should we change i_rd_we to be 
 
 
 /*************** EXECUTE ***************/
@@ -309,6 +311,7 @@ module lc4_processor
    // Load Pipeline data
    insn_pipeline DX_pipeline( 
        .in_insn(d_insn), .in_pc(d_pc), .in_dmem_data(d_dmem_data), .in_nzp(d_nzp),
+       //.in_r1sel(d_r1sel), .in_r2sel(d_r2sel), .in_wsel(d_wsel), // .in_nzp(), TODO: add NZP?
        .in_r1re(d_r1re), .in_r2re(d_r2re), .in_rs(d_rs), .in_rt(d_rt),
        .in_regfile_we(d_regfile_we), .in_nzp_we(d_nzp_we), 
        .in_select_pc_plus_one(d_select_pc_plus_one), 
@@ -316,6 +319,7 @@ module lc4_processor
        .in_is_control_insn(d_is_control_insn),
        .in_stall(d_stall),
        .out_insn(x_insn), .out_pc(x_pc), .out_dmem_data(x_dmem_data), .out_nzp(x_nzp),
+       //.out_r1sel(x_r1sel), .out_r2sel(x_r2sel), .out_wsel(x_wsel), // .in_nzp(), TODO: add NZP?
        .out_r1re(x_r1re), .out_r2re(x_r2re), .out_rs(x_rs_default), .out_rt(x_rt_default),
        .out_regfile_we(x_regfile_we), .out_nzp_we(x_nzp_we), 
        .out_select_pc_plus_one(x_select_pc_plus_one), 
@@ -377,6 +381,7 @@ module lc4_processor
 
    insn_pipeline XM_pipeline( 
        .in_insn(x_insn), .in_pc(x_pc), .in_dmem_data(x_dmem_data), .in_nzp(x_nzp),
+       //.in_r1sel(x_r1sel), .in_r2sel(x_r2sel), .in_wsel(x_wsel), // .in_nzp(), TODO: add NZP?
        .in_r1re(x_r1re), .in_r2re(x_r2re), 
        .in_regfile_we(x_regfile_we), .in_nzp_we(x_nzp_we), 
        .in_select_pc_plus_one(x_select_pc_plus_one), 
@@ -386,6 +391,7 @@ module lc4_processor
        .in_nzp_result(x_nzp_result),
        .in_stall(x_stall),
        .out_insn(m_insn), .out_pc(m_pc), .out_dmem_data(m_dmem_data), .out_nzp(m_nzp),
+       //.out_r1sel(m_r1sel), .out_r2sel(m_r2sel), .out_wsel(m_wsel), // .in_nzp(), TODO: add NZP?
        .out_r1re(m_r1re), .out_r2re(m_r2re), 
        .out_regfile_we(m_regfile_we), .out_nzp_we(m_nzp_we), 
        .out_select_pc_plus_one(m_select_pc_plus_one), 
@@ -428,7 +434,7 @@ module lc4_processor
    // Computed
    insn_pipeline MW_pipeline( 
        .in_insn(m_insn), .in_pc(m_pc), .in_dmem_data(m_dmem_data), .in_nzp(m_nzp),
-       .in_r1re(m_r1re), .in_r2re(m_r2re), 
+       //.in_r1re(m_r1re), .in_r2re(m_r2re), .in_wsel(m_wsel), // .in_nzp(), TODO: add NZP?
        .in_regfile_we(m_regfile_we), .in_nzp_we(m_nzp_we), 
        .in_select_pc_plus_one(m_select_pc_plus_one), 
        .in_is_load(m_is_load), .in_is_store(m_is_store), .in_is_branch(m_is_branch), 
@@ -438,6 +444,7 @@ module lc4_processor
        .in_dmem_we(m_dmem_we), .in_dmem_addr(m_dmem_addr), .in_dmem_towrite(m_dmem_towrite),
        .in_stall(m_stall),
        .out_insn(w_insn), .out_pc(w_pc), .out_dmem_data(w_dmem_data), .out_nzp(w_nzp),
+       //.out_r1sel(w_r1sel), .out_r2sel(w_r2sel), .out_wsel(w_wsel), // .in_nzp(), TODO: add NZP?
        .out_r1re(w_r1re), .out_r2re(w_r2re), 
        .out_regfile_we(w_regfile_we), .out_nzp_we(w_nzp_we), 
        .out_select_pc_plus_one(w_select_pc_plus_one), 
@@ -471,7 +478,7 @@ module lc4_processor
    //Stall
    assign test_stall = w_stall; 
    assign test_cur_pc = o_cur_pc;
-   assign test_cur_insn = w_insn;
+   assign test_cur_insn = i_cur_insn;
    assign test_regfile_we = w_regfile_we;
    assign test_regfile_wsel = w_wsel;
    assign test_regfile_data = w_regfile_we ? w_wdata : 16'd0;
@@ -489,11 +496,11 @@ module lc4_processor
     */
 `ifndef NDEBUG
    always @(posedge gwe) begin
-      $display("%d SHIT: %h", $time, (i_cur_insn == 16'b0));
       $display("%d PC: %h, Instruction: %h", $time, o_cur_pc, i_cur_insn);
       $display("%d Instructions: %h, %h, %h, %h, %h", $time, f_insn, d_insn, x_insn, m_insn, w_insn);
       $display("%d PCs: %h, %h, %h, %h, %h", $time, f_pc, d_pc, x_pc, m_pc, w_pc);
-      $display("%d Stalls: __, %h, %h, %h, %h", $time, d_stall, x_stall, m_stall, w_stall);
+      $display("%d Stalls: %h, %h, %h, %h, %h", $time, f_stall, d_stall, x_stall, m_stall, w_stall);
+      $display("%d regfile we: __, %h, %h, %h, %h", $time, d_regfile_we, x_regfile_we, m_regfile_we, w_regfile_we);
 
       // Start each $display() format string with a %d argument for time
       // it will make the output easier to read.  Use %b, %h, and %d
