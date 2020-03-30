@@ -131,11 +131,15 @@ module lc4_processor
 
    // Program counter register, starts at 8200h at bootup
    //Nbit_reg #(16, 16'h8200) pc_reg (.in(c), .out(pc), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
-   
 
-/*************** FETCH ***************/
+
+   // VARIABLE DECLARATIONS
+   wire [15:0] f_insn, d_insn, x_insn, m_insn, w_insn; // Instructions
+   wire [15:0] f_pc, d_pc, x_pc, m_pc, w_pc; // program counters
+
+   /*************** FETCH STAGE ***************/
    // F: Fetch Stage
-   wire [15:0] f_insn, f_pc, f_dmem_data;
+   wire [15:0] f_dmem_data;
    wire [1:0] f_stall;
    wire [2:0] f_nzp;
    //Test Signals
@@ -148,12 +152,11 @@ module lc4_processor
    assign f_dmem_data = i_cur_dmem_data;
    assign f_nzp = w_nzp;
 
-
-/*************** DECODE ***************/
+   /*************** DECODE STAGE ***************/
    // Parse the instruction
    // D: Decode Stage
    // Previous stages
-   wire [15:0] d_insn, d_pc, d_dmem_data;
+   wire [15:0] d_dmem_data;
    wire [1:0] d_stall;
    wire [2:0] d_nzp;
 
@@ -211,13 +214,12 @@ module lc4_processor
       .i_wdata(w_wdata),   // data to write (Write phase)
       .i_rd_we(w_regfile_we)  
    );
-   // TODO: should we change i_rd_we to be 
 
 
-/*************** EXECUTE ***************/
+   /*************** EXECUTE STAGE ***************/
    // X: Execute Stage
    // Previous stages
-   wire [15:0] x_insn, x_pc, x_dmem_data;
+   wire [15:0] x_dmem_data;
    wire [2:0] x_nzp;
    wire [2:0] x_r1sel, x_r2sel, x_wsel;
    wire x_r1re, x_r2re, x_regfile_we, x_nzp_we, x_select_pc_plus_one, x_is_load, x_is_store, x_is_branch, x_is_control_insn; 
@@ -297,10 +299,10 @@ module lc4_processor
    wire [15:0] x_jmp_tgt = x_is_control_insn ? x_alu : x_pc_plus_one;
    assign x_next_pc = (x_is_branch & x_nzp_result) ? x_alu : x_jmp_tgt;
  
-/*************** MEMORY ***************/
+   /*************** MEMORY STAGE ***************/
    // M: Memory
    // Previous Stages
-   wire [15:0] m_insn, m_pc, m_dmem_data;
+   wire [15:0] m_dmem_data;
    wire [2:0] m_nzp;
    wire [2:0] m_r1sel, m_r2sel, m_wsel;
    wire m_r1re, m_r2re, m_regfile_we, m_nzp_we, m_select_pc_plus_one, m_is_load, m_is_store, m_is_branch, m_is_control_insn; 
@@ -368,10 +370,10 @@ module lc4_processor
    assign o_dmem_towrite = m_dmem_addr;
    assign o_dmem_addr = m_dmem_towrite;
 
-/*************** WRITEBACK ***************/
+   /*************** WRITEBACK STAGE ***************/
    // W: Writeback
    // Previous Stages
-   wire [15:0] w_insn, w_pc, w_dmem_data;
+   wire [15:0] w_dmem_data;
    wire [2:0] w_nzp;
    wire [2:0] w_r1sel, w_r2sel, w_wsel;
    wire w_r1re, w_r2re, w_regfile_we, w_nzp_we, w_select_pc_plus_one, w_is_load, w_is_store, w_is_branch, w_is_control_insn; 
