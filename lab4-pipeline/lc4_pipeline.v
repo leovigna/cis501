@@ -187,9 +187,130 @@ module lc4_processor
    assign test_dmem_addr = o_dmem_addr;
    assign test_dmem_data = is_store ? o_dmem_towrite : (is_load ? i_cur_dmem_data : 16'd0) ;
 
-   /*******************************
-    * TODO: INSERT YOUR CODE HERE *
-    *******************************/
+   // By default, assign LEDs to display switch inputs to avoid warnings about
+   // disconnected ports. Feel free to use this for debugging input/output if
+   // you desire.
+   assign led_data = switch_data;
+
+   
+   /* DO NOT MODIFY THIS CODE */
+   // Always execute one instruction each cycle (test_stall will get used in your pipelined processor)
+   assign test_stall = 2'b0; 
+
+   // pc wires attached to the PC register's ports
+   wire [15:0]   pc;      // Current program counter (read out from pc_reg)
+   wire [15:0]   next_pc; // Next program counter (you compute this and feed it into next_pc)
+
+   // Program counter register, starts at 8200h at bootup
+   Nbit_reg #(16, 16'h8200) pc_reg (.in(next_pc), .out(pc), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+
+   /* END DO NOT MODIFY THIS CODE */
+
+   // Parse the instruction
+   wire [2:0] r1sel, r2sel, wsel;
+   wire r1re, r2re, regfile_we, nzp_we, select_pc_plus_one, is_load, is_store, is_branch, is_control_insn; 
+   lc4_decoder d(
+      .insn(i_cur_insn),
+      .r1re(r1re),
+      .r1sel(r1sel),
+      .r2re(r2re),
+      .r2sel(r2sel),
+      .wsel(wsel),
+      .regfile_we(regfile_we),
+      .nzp_we(nzp_we),
+      .select_pc_plus_one(select_pc_plus_one),
+      .is_load(is_load),
+      .is_store(is_store),
+      .is_branch(is_branch),
+      .is_control_insn(is_control_insn)
+   );
+
+   wire [15:0] o_rs, o_rt;
+   wire [15:0] i_wdata; // write to data file by assigning this
+
+   // make the registers
+   lc4_regfile r(
+      .clk(clk),
+      .gwe(gwe),
+      .rst(rst),
+      .i_rs(r1sel),      // rs selector
+      .o_rs_data(o_rs), // rs contents
+      .i_rt(r2sel),      // rt selector
+      .o_rt_data(o_rt), // rt contents
+      .i_rd(wsel),      // rd selector
+      .i_wdata(i_wdata),   // data to write
+      .i_rd_we(regfile_we)
+   );
+
+   // Make the NZP register
+   wire [2:0]   nzp; // where you read the current nzp
+   wire [2:0]   next_nzp;
+   Nbit_reg #(3, 3'd0) nzp_reg (
+      .in(next_nzp), 
+      .out(nzp), 
+      .clk(clk), 
+      .we(nzp_we), 
+      .gwe(gwe), 
+      .rst(rst)
+   );
+
+   // Increment PC
+   wire [15:0] pc_plus_one;
+
+   cla16 a(.a(pc), .b(16'd0), .cin(1'b1), .sum(pc_plus_one));
+
+   wire [15:0] o_alu;
+   // Run the ALU
+   lc4_alu alu(
+      .i_insn(i_cur_insn), 
+      .i_pc(pc), 
+      .i_r1data(o_rs), 
+      .i_r2data(o_rt), 
+      .o_result(o_alu)
+   );
+
+   // Update the NZP bits from the ALU
+   nzp_unit n(
+      .i_wdata(i_wdata),
+      .nzp(nzp),
+      .next_nzp(next_nzp)
+   );
+
+   // write to the register
+   assign i_wdata = is_load ? i_cur_dmem_data : (select_pc_plus_one ? pc_plus_one : o_alu);
+
+   // Write to the memory
+   memory_unit m(
+      .is_store(is_store), .is_load(is_load), 
+      .o_alu(o_alu),
+      .o_dmem_we(o_dmem_we),
+      .o_dmem_addr(o_dmem_addr), .o_dmem_towrite(o_dmem_towrite), .o_rt(o_rt)
+   );
+
+   // branch logic!
+   wire nzp_result = ((nzp & i_cur_insn[11:9]) != 3'b0);
+   
+   // New
+   wire [15:0] jmp_tgt = is_control_insn ? o_alu : pc_plus_one;
+   assign next_pc = (is_branch & nzp_result) ? o_alu : jmp_tgt;
+
+   // assign the current pc
+   assign o_cur_pc = pc;
+
+   // Finially, assign all the test benches
+   //assign test_cur_pc = 16'h9010;
+   assign test_cur_pc = pc;
+   assign test_cur_insn = i_cur_insn;
+   assign test_regfile_we = regfile_we;
+   assign test_regfile_wsel = wsel;
+   assign test_regfile_data = regfile_we ? i_wdata : 16'd0;
+   assign test_nzp_we = nzp_we;
+   assign test_nzp_new_bits = next_nzp;
+   assign test_dmem_we = is_store;
+   assign test_dmem_we = o_dmem_we;
+   assign test_dmem_addr = o_dmem_addr;
+   assign test_dmem_data = is_store ? o_dmem_towrite : (is_load ? i_cur_dmem_data : 16'd0) ;
+
 
    /* Add $display(...) calls in the always block below to
     * print out debug information at the end of every cycle.
@@ -202,9 +323,11 @@ module lc4_processor
     */
 `ifndef NDEBUG
    always @(posedge gwe) begin
+    /*
       $display("%d %h %h %h %h %h", $time, f_pc, d_pc, e_pc, m_pc, test_cur_pc);
       if (o_dmem_we)
          $display("%d STORE %h <= %h", $time, o_dmem_addr, o_dmem_towrite);
+         */
 
       // Start each $display() format string with a %d argument for time
       // it will make the output easier to read.  Use %b, %h, and %d
