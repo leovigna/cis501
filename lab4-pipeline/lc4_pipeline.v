@@ -325,6 +325,7 @@ module lc4_processor
       $display("%d select PC plus 1: __, %h, %h, %h, %h", $time, d_select_pc_plus_one, x_select_pc_plus_one, m_select_pc_plus_one, w_select_pc_plus_one);
       $display("%d alu: __, __, %h, %h, %h", $time, x_alu, m_alu, w_alu);
       $display("%d is not stall from load: %h", $time, is_not_stall_from_load);
+      $display("%d ALU Inputs: %h %h %h %h", $time, x_insn, x_pc, mx_bypass_rs, mx_bypass_rt);
 
       // Start each $display() format string with a %d argument for time
       // it will make the output easier to read.  Use %b, %h, and %d
