@@ -3,6 +3,8 @@
     Nate Rush: narush
 */
 
+`include "./lc4_alu.v"
+
 `timescale 1ns / 1ps
 
 // disable implicit wire declaration
@@ -102,7 +104,6 @@ module lc4_processor
 
 
    /*************** FETCH STAGE ***************/
-   // TODO: LEO, can you check this is correct!
    wire is_not_stall_from_load;
    assign is_not_stall_from_load = (x_is_load & (((d_r1sel == x_wsel & d_r1re) | (d_r2sel == x_wsel & d_r2re)) & !d_is_store)) ? 0 : 1; 
    // Load in the instructions, stall values, and pc
@@ -193,7 +194,7 @@ module lc4_processor
    Nbit_reg #(1, 1'b0) x_is_control_insn_reg(.in(d_is_control_insn), .out(x_is_control_insn), .we(1'b1), .clk(clk), .gwe(gwe), .rst(rst));
 
    // Bypasses
-   wire mx_bypass_rs, mx_bypass_rt, wx_bypass_rs, wx_bypass_rt;
+   wire [15: 0] mx_bypass_rs, mx_bypass_rt, wx_bypass_rs, wx_bypass_rt;
 
    // TODO: LEO: can you check these conditions
    assign wx_bypass_rs = (x_r1sel == w_wsel && w_regfile_we) ? w_wdata : x_rs;
@@ -325,7 +326,7 @@ module lc4_processor
       $display("%d select PC plus 1: __, %h, %h, %h, %h", $time, d_select_pc_plus_one, x_select_pc_plus_one, m_select_pc_plus_one, w_select_pc_plus_one);
       $display("%d alu: __, __, %h, %h, %h", $time, x_alu, m_alu, w_alu);
       $display("%d is not stall from load: %h", $time, is_not_stall_from_load);
-      $display("%d ALU Inputs: %h %h %h %h", $time, x_insn, x_pc, mx_bypass_rs, mx_bypass_rt);
+      $display("%d ALU Inputs: %h %h %h %h %h", $time, x_insn, x_pc, mx_bypass_rs, mx_bypass_rt, x_alu);
 
       // Start each $display() format string with a %d argument for time
       // it will make the output easier to read.  Use %b, %h, and %d
