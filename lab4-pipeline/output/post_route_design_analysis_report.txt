@@ -1,0 +1,66 @@
+Copyright 1986-2017 Xilinx, Inc. All Rights Reserved.
+---------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2017.4 (lin64) Build 2086221 Fri Dec 15 20:54:30 MST 2017
+| Date         : Mon Mar 30 22:46:19 2020
+| Host         : ballroom running 64-bit openSUSE Leap 15.1
+| Command      : report_design_analysis -file ./output/post_route_design_analysis_report.txt
+| Design       : lc4_system
+| Device       : xc7z020
+---------------------------------------------------------------------------------------------
+
+Report Design Analysis
+
+Table of Contents
+-----------------
+1. Setup Path Characteristics 1-1
+2. Logic Level Distribution
+
+1. Setup Path Characteristics 1-1
+---------------------------------
+
++---------------------------+----------------------------------+
+|      Characteristics      |              Path #1             |
++---------------------------+----------------------------------+
+| Requirement               |                           20.000 |
+| Path Delay                |                            3.355 |
+| Logic Delay               | 0.610(19%)                       |
+| Net Delay                 | 2.745(81%)                       |
+| Clock Skew                |                           -0.259 |
+| Slack                     |                           15.406 |
+| Clock Relationship        | Safely Timed                     |
+| Logic Levels              |                                1 |
+| Routes                    |                                2 |
+| Logical Path              | FDRE LUT1 RAMB36E1               |
+| Start Point Clock         | clk_vga_inv_design_1_clk_wiz_0_0 |
+| End Point Clock           | clk_vga_design_1_clk_wiz_0_0     |
+| DSP Block                 | None                             |
+| BRAM                      | Input                            |
+| IO Crossings              |                                0 |
+| Config Crossings          |                                0 |
+| SLR Crossings             |                                0 |
+| PBlocks                   |                                0 |
+| High Fanout               |                               16 |
+| Dont Touch                |                                0 |
+| Mark Debug                |                                0 |
+| Start Point Pin Primitive | FDRE/C                           |
+| End Point Pin Primitive   | RAMB36E1/ADDRBWRADDR[5]          |
+| Start Point Pin           | PIXEL_COUNT_reg[6]/C             |
+| End Point Pin             | VRAM_reg_5/ADDRBWRADDR[5]        |
++---------------------------+----------------------------------+
+* Bounding box calculated as % of dimensions for the target device (308, 299)
+
+
+2. Logic Level Distribution
+---------------------------
+
++------------------------------------+-------------+----+-----+-----+---+---+---+---+---+---+----+----+----+----+
+|           End Point Clock          | Requirement |  0 |  1  |  2  | 3 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 |
++------------------------------------+-------------+----+-----+-----+---+---+---+---+---+---+----+----+----+----+
+| clk_processor_design_1_clk_wiz_0_0 | 57.250ns    |  4 | 529 | 236 | 8 | 5 | 4 | 4 | 4 | 4 |  4 |  4 |  4 |  4 |
+| clk_vga_design_1_clk_wiz_0_0       | 20.000ns    | 88 |  24 |   0 | 0 | 0 | 0 | 0 | 0 | 0 |  0 |  0 |  0 |  0 |
+| clk_vga_inv_design_1_clk_wiz_0_0   | 20.000ns    | 16 |  23 |  29 | 6 | 0 | 0 | 0 | 0 | 0 |  0 |  0 |  0 |  0 |
++------------------------------------+-------------+----+-----+-----+---+---+---+---+---+---+----+----+----+----+
+* Columns represents the logic levels per end point clock
+** Distribution is for top worst 1000 paths
+
+

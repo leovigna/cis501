@@ -1,0 +1,79 @@
+Copyright 1986-2017 Xilinx, Inc. All Rights Reserved.
+------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2017.4 (lin64) Build 2086221 Fri Dec 15 20:54:30 MST 2017
+| Date         : Mon Mar 30 22:46:19 2020
+| Host         : ballroom running 64-bit openSUSE Leap 15.1
+| Command      : report_timing -file ./output/post_route_timing_report.txt
+| Design       : lc4_system
+| Device       : 7z020-clg484
+| Speed File   : -1  PRODUCTION 1.11 2014-09-11
+------------------------------------------------------------------------------------
+
+Timing Report
+
+Slack (MET) :             15.406ns  (required time - arrival time)
+  Source:                 vga_cntrl_inst/svga_t_g/PIXEL_COUNT_reg[6]/C
+                            (rising edge-triggered cell FDRE clocked by clk_vga_inv_design_1_clk_wiz_0_0  {rise@20.000ns fall@40.000ns period=40.000ns})
+  Destination:            memory/memory/VRAM_reg_5/ADDRBWRADDR[5]
+                            (rising edge-triggered cell RAMB36E1 clocked by clk_vga_design_1_clk_wiz_0_0  {rise@0.000ns fall@20.000ns period=40.000ns})
+  Path Group:             clk_vga_design_1_clk_wiz_0_0
+  Path Type:              Setup (Max at Slow Process Corner)
+  Requirement:            20.000ns  (clk_vga_design_1_clk_wiz_0_0 rise@40.000ns - clk_vga_inv_design_1_clk_wiz_0_0 rise@20.000ns)
+  Data Path Delay:        3.355ns  (logic 0.610ns (18.183%)  route 2.745ns (81.817%))
+  Logic Levels:           1  (LUT1=1)
+  Clock Path Skew:        -0.259ns (DCD - SCD + CPR)
+    Destination Clock Delay (DCD):    -1.493ns = ( 38.507 - 40.000 ) 
+    Source Clock Delay      (SCD):    -0.946ns = ( 19.054 - 20.000 ) 
+    Clock Pessimism Removal (CPR):    0.288ns
+  Clock Uncertainty:      0.211ns  ((TSJ^2 + DJ^2)^1/2) / 2 + PE
+    Total System Jitter     (TSJ):    0.071ns
+    Discrete Jitter          (DJ):    0.168ns
+    Phase Error              (PE):    0.120ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk_vga_inv_design_1_clk_wiz_0_0 rise edge)
+                                                     20.000    20.000 r  
+    Y9                                                0.000    20.000 f  CLOCK_100MHz (IN)
+                         net (fo=0)                   0.000    20.000    mmcm0/CLOCK_100MHz
+    Y9                   IBUF (Prop_ibuf_I_O)         1.490    21.490 f  mmcm0/clkin1_ibufg/O
+                         net (fo=1, routed)           1.285    22.775    mmcm0/clk_in1_design_1_clk_wiz_0_0
+    MMCME2_ADV_X0Y0      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT1B)
+                                                     -7.343    15.432 r  mmcm0/mmcm_adv_inst/CLKOUT1B
+                         net (fo=1, routed)           1.855    17.287    mmcm0/clk_vga_inv_design_1_clk_wiz_0_0
+    BUFGCTRL_X0Y1        BUFG (Prop_bufg_I_O)         0.101    17.388 r  mmcm0/clkout3_buf/O
+                         net (fo=42, routed)          1.666    19.054    vga_cntrl_inst/svga_t_g/clk_vga_inv
+    SLICE_X44Y49         FDRE                                         r  vga_cntrl_inst/svga_t_g/PIXEL_COUNT_reg[6]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X44Y49         FDRE (Prop_fdre_C_Q)         0.456    19.510 f  vga_cntrl_inst/svga_t_g/PIXEL_COUNT_reg[6]/Q
+                         net (fo=16, routed)          1.035    20.546    vga_cntrl_inst/svga_t_g/pixel_count[6]
+    SLICE_X44Y46         LUT1 (Prop_lut1_I0_O)        0.154    20.700 r  vga_cntrl_inst/svga_t_g/VRAM_reg_0_i_4/O
+                         net (fo=8, routed)           1.709    22.409    memory/memory/vaddr[4]
+    RAMB36_X3Y11         RAMB36E1                                     r  memory/memory/VRAM_reg_5/ADDRBWRADDR[5]
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk_vga_design_1_clk_wiz_0_0 rise edge)
+                                                     40.000    40.000 r  
+    Y9                                                0.000    40.000 r  CLOCK_100MHz (IN)
+                         net (fo=0)                   0.000    40.000    mmcm0/CLOCK_100MHz
+    Y9                   IBUF (Prop_ibuf_I_O)         1.420    41.420 r  mmcm0/clkin1_ibufg/O
+                         net (fo=1, routed)           1.162    42.582    mmcm0/clk_in1_design_1_clk_wiz_0_0
+    MMCME2_ADV_X0Y0      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT1)
+                                                     -7.438    35.144 r  mmcm0/mmcm_adv_inst/CLKOUT1
+                         net (fo=1, routed)           1.691    36.835    mmcm0/clk_vga_design_1_clk_wiz_0_0
+    BUFGCTRL_X0Y2        BUFG (Prop_bufg_I_O)         0.091    36.926 r  mmcm0/clkout2_buf/O
+                         net (fo=8, routed)           1.581    38.507    memory/memory/clk_vga
+    RAMB36_X3Y11         RAMB36E1                                     r  memory/memory/VRAM_reg_5/CLKBWRCLK
+                         clock pessimism              0.288    38.796    
+                         clock uncertainty           -0.211    38.585    
+    RAMB36_X3Y11         RAMB36E1 (Setup_ramb36e1_CLKBWRCLK_ADDRBWRADDR[5])
+                                                     -0.769    37.816    memory/memory/VRAM_reg_5
+  -------------------------------------------------------------------
+                         required time                         37.816    
+                         arrival time                         -22.409    
+  -------------------------------------------------------------------
+                         slack                                 15.406    
+
+
+
+

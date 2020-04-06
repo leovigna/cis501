@@ -100,31 +100,32 @@ module lc4_processor
    wire [15:0]                x_pc_plus_one, m_pc_plus_one, w_pc_plus_one;
    wire [2:0]                 x_nzp, m_nzp, w_nzp;
    wire [15:0]                x_wdata, m_wdata, w_wdata;
+   wire        took_branch;
 
 
 
    /*************** FETCH STAGE ***************/
-   wire is_not_stall_from_load;
-   assign is_not_stall_from_load = (x_is_load & (((d_r1sel == x_wsel & d_r1re) | (d_r2sel == x_wsel & d_r2re)) & !d_is_store)) ? 0 : 1; 
+   wire is_not_stall, stall_default;
+
+   assign stall_default = x_is_load && ((x_wsel == d_r1sel && d_r1re) || (x_wsel == d_r2sel && d_r2re)) && (!d_is_store || x_wsel == d_r1sel || x_wsel != d_r2sel);
+   assign is_not_stall = (!x_is_load || !d_is_branch) && !stall_default;
+
    // Load in the instructions, stall values, and pc
-   assign f_insn = i_cur_insn;
-   assign f_stall = is_not_stall_from_load ? 2'd0 : 2'd3;
-   assign o_cur_pc = f_pc; 
+   assign f_insn = took_branch ? 16'd0 : i_cur_insn;
+   assign f_stall = took_branch ? 2'd2 : (is_not_stall ? 2'd0 : 2'd3);
+   assign o_cur_pc = f_pc;
 
    // Single PC register for the fetch stage
-   Nbit_reg #(16, 16'h8200) f_pc_reg(.in(next_pc), .out(f_pc), .we(is_not_stall_from_load), .clk(clk), .gwe(gwe), .rst(rst));
+   Nbit_reg #(16, 16'h8200) f_pc_reg(.in(next_pc), .out(f_pc), .we(is_not_stall), .clk(clk), .gwe(gwe), .rst(rst));
 
    
    /*************** DECODE STAGE ***************/
-   wire [15:0] d_insn_default;
    wire [15:0] d_rs_default, d_rt_default;
-
-   assign d_insn_default = (next_pc == x_pc_plus_one) ? i_cur_insn : 16'b0;
    
    // decode registers
-   Nbit_reg #(16, 16'b0) d_insn_reg(.in(d_insn_default), .out(d_insn), .we(is_not_stall_from_load), .clk(clk), .gwe(gwe), .rst(rst));
-   Nbit_reg #(16, 16'h8200) D_pc(.in(f_pc), .out(d_pc), .we(is_not_stall_from_load), .clk(clk), .gwe(gwe), .rst(rst));
-   Nbit_reg #(2, 2'h2)   d_stall_reg(.in(f_stall), .out(d_stall), .we(is_not_stall_from_load), .clk(clk), .gwe(gwe), .rst(rst));
+   Nbit_reg #(16, 16'b0) d_insn_reg(.in(f_insn), .out(d_insn), .we(is_not_stall), .clk(clk), .gwe(gwe), .rst(rst));
+   Nbit_reg #(16, 16'h8200) D_pc(.in(f_pc), .out(d_pc), .we(is_not_stall), .clk(clk), .gwe(gwe), .rst(rst));
+   Nbit_reg #(2, 2'h2)   d_stall_reg(.in(f_stall), .out(d_stall), .we(is_not_stall), .clk(clk), .gwe(gwe), .rst(rst));
 
    // Bypassing from WD   
    wire wd_bypass_rs, wd_bypass_rt;
@@ -169,11 +170,24 @@ module lc4_processor
 
    // TODO: change to x!
    wire [15:0] x_insn_default;
+   wire [2:0]  x_r1sel_default, x_r2sel_default, x_wsel_default;
    wire [1:0]  x_stall_default;
+   wire x_regfile_we_default, x_nzp_we_default, x_select_pc_plus_one_default, x_is_load_default, x_is_store_default, x_is_branch_default, x_is_control_insn_default, zero_default;
 
-   // Check if it's a stall from load
-   assign x_stall_default = is_not_stall_from_load ? d_stall : 2'd3;
-   assign x_insn_default = (is_not_stall_from_load | next_pc == x_pc_plus_one) ? d_insn : 16'b0;
+   // Input should be null if we are stalled or took a branch
+   assign zero_default = !is_not_stall || took_branch;
+   assign x_insn_default = zero_default ? 16'b0 : d_insn;
+   assign x_r1sel_default = zero_default ? 3'b0 : d_r1sel;
+   assign x_r2sel_default = zero_default ? 3'b0 : d_r2sel;
+   assign x_wsel_default = zero_default ? 3'b0 : d_wsel;
+   assign x_regfile_we_default = zero_default ? 1'b0 : d_regfile_we;
+   assign x_nzp_we_default = zero_default ? 1'b0 : d_nzp_we;
+   assign x_select_pc_plus_one_default = zero_default ? 1'b0 : d_select_pc_plus_one;
+   assign x_is_load_default = zero_default ? 1'b0 : d_is_load;
+   assign x_is_store_default = zero_default ? 1'b0 : d_is_store;
+   assign x_is_branch_default = zero_default ? 1'b0 : d_is_branch;
+   assign x_is_control_insn_default = zero_default ? 1'b0 : d_is_control_insn;
+   assign x_stall_default = took_branch ? 2'd2 : (is_not_stall ? d_stall : 2'd3);
 
    // Registers for execute stage
    Nbit_reg #(16, 16'h8200) x_pc_reg(.in(d_pc), .out(x_pc), .we(1'b1), .clk(clk), .gwe(gwe), .rst(rst));
@@ -182,21 +196,20 @@ module lc4_processor
    Nbit_reg #(16) x_rt_data_reg(.in(d_rt), .out(x_rt), .we(1'b1), .clk(clk), .gwe(gwe), .rst(rst));
    // including registers for all decoded signals
    Nbit_reg #(16, 16'b0) x_insn_reg(.in(x_insn_default), .out(x_insn), .we(1'b1), .clk(clk), .gwe(gwe), .rst(rst));
-   Nbit_reg #(3, 3'b0) x_r1sel_reg(.in(d_r1sel), .out(x_r1sel), .we(1'b1), .clk(clk), .gwe(gwe), .rst(rst));
-   Nbit_reg #(3, 3'b0) x_r2sel_reg(.in(d_r2sel), .out(x_r2sel), .we(1'b1), .clk(clk), .gwe(gwe), .rst(rst));
-   Nbit_reg #(3, 3'b0) x_wsel_reg(.in(d_wsel), .out(x_wsel), .we(1'b1), .clk(clk), .gwe(gwe), .rst(rst));
-   Nbit_reg #(1, 1'b0) x_regfile_we_reg(.in(d_regfile_we), .out(x_regfile_we), .we(1'b1), .clk(clk), .gwe(gwe), .rst(rst));
-   Nbit_reg #(1, 1'b0) x_nzp_we_reg(.in(d_nzp_we), .out(x_nzp_we), .we(1'b1), .clk(clk), .gwe(gwe), .rst(rst));
-   Nbit_reg #(1, 1'b0) x_select_pc_plus_one_reg(.in(d_select_pc_plus_one), .out(x_select_pc_plus_one), .we(1'b1), .clk(clk), .gwe(gwe), .rst(rst));                      
-   Nbit_reg #(1, 1'b0) x_is_load_reg(.in(d_is_load), .out(x_is_load), .we(1'b1), .clk(clk), .gwe(gwe), .rst(rst));
-   Nbit_reg #(1, 1'b0) x_is_store_reg(.in(d_is_store), .out(x_is_store), .we(1'b1), .clk(clk), .gwe(gwe), .rst(rst));
-   Nbit_reg #(1, 1'b0) x_is_branch_reg(.in(d_is_branch), .out(x_is_branch), .we(1'b1), .clk(clk), .gwe(gwe), .rst(rst));
-   Nbit_reg #(1, 1'b0) x_is_control_insn_reg(.in(d_is_control_insn), .out(x_is_control_insn), .we(1'b1), .clk(clk), .gwe(gwe), .rst(rst));
+   Nbit_reg #(3, 3'b0) x_r1sel_reg(.in(x_r1sel_default), .out(x_r1sel), .we(1'b1), .clk(clk), .gwe(gwe), .rst(rst));
+   Nbit_reg #(3, 3'b0) x_r2sel_reg(.in(x_r2sel_default), .out(x_r2sel), .we(1'b1), .clk(clk), .gwe(gwe), .rst(rst));
+   Nbit_reg #(3, 3'b0) x_wsel_reg(.in(x_wsel_default), .out(x_wsel), .we(1'b1), .clk(clk), .gwe(gwe), .rst(rst));
+   Nbit_reg #(1, 1'b0) x_regfile_we_reg(.in(x_regfile_we_default), .out(x_regfile_we), .we(1'b1), .clk(clk), .gwe(gwe), .rst(rst));
+   Nbit_reg #(1, 1'b0) x_nzp_we_reg(.in(x_nzp_we_default), .out(x_nzp_we), .we(1'b1), .clk(clk), .gwe(gwe), .rst(rst));
+   Nbit_reg #(1, 1'b0) x_select_pc_plus_one_reg(.in(x_select_pc_plus_one_default), .out(x_select_pc_plus_one), .we(1'b1), .clk(clk), .gwe(gwe), .rst(rst));                      
+   Nbit_reg #(1, 1'b0) x_is_load_reg(.in(x_is_load_default), .out(x_is_load), .we(1'b1), .clk(clk), .gwe(gwe), .rst(rst));
+   Nbit_reg #(1, 1'b0) x_is_store_reg(.in(x_is_store_default), .out(x_is_store), .we(1'b1), .clk(clk), .gwe(gwe), .rst(rst));
+   Nbit_reg #(1, 1'b0) x_is_branch_reg(.in(x_is_branch_default), .out(x_is_branch), .we(1'b1), .clk(clk), .gwe(gwe), .rst(rst));
+   Nbit_reg #(1, 1'b0) x_is_control_insn_reg(.in(x_is_control_insn_default), .out(x_is_control_insn), .we(1'b1), .clk(clk), .gwe(gwe), .rst(rst));
 
    // Bypasses
    wire [15: 0] mx_bypass_rs, mx_bypass_rt, wx_bypass_rs, wx_bypass_rt;
 
-   // TODO: LEO: can you check these conditions
    assign wx_bypass_rs = (x_r1sel == w_wsel && w_regfile_we) ? w_wdata : x_rs;
    assign wx_bypass_rt = (x_r2sel == w_wsel && w_regfile_we) ? w_wdata : x_rt;
 
@@ -215,27 +228,35 @@ module lc4_processor
       .o_result(x_alu)
    );
 
-   // TODO: in the future when there are branching instructions, we have to branch!
-   assign next_pc = x_pc_plus_one;
+   // put the correct data in the wdata pipe
+   assign x_wdata = x_is_load ? i_cur_dmem_data : (x_select_pc_plus_one ? (x_is_control_insn ? w_pc_plus_one : x_pc_plus_one) : x_alu);
 
-   assign x_wdata = x_is_load ? i_cur_dmem_data : (x_select_pc_plus_one ? x_pc_plus_one : x_alu);
-   // TODO: might have to case on the fact that it's a load
-   nzp_unit n(
-      .i_wdata(x_wdata),
-      .nzp_we(x_nzp_we),
-      .prev_nzp(w_nzp),
-      .next_nzp(x_nzp)
-   );
- 
+   // NZP updating
+   wire neg, zero, pos;
+   assign neg = x_wdata[15];
+   assign zero = x_wdata == 16'b0;
+   assign pos = !neg & !zero;
+   assign x_nzp = (!x_is_load && x_nzp_we) ? {neg, zero, pos} : (m_nzp_we ? m_nzp : w_nzp);
+
+   // Branch, if we need to, and remember if we branched
+   wire nzp_result; 
+   assign nzp_result = ((x_nzp[0] == x_insn[9] && x_nzp[0]) || (x_nzp[1] == x_insn[10] && x_nzp[1]) || (x_nzp[2] == x_insn[11] && x_nzp[2]));
+   assign took_branch = (x_is_branch && nzp_result) || x_is_control_insn;
+   assign next_pc = took_branch ? x_alu : x_pc_plus_one;
+
    /*************** MEMORY STAGE ***************/
+
+   wire [15:0] m_pc_plus_one_default;
+
+   assign m_pc_plus_one_default = x_is_control_insn ? w_pc_plus_one : x_pc_plus_one;
 
    // Registers for the memory stage
    Nbit_reg #(16, 16'b0) m_pc_reg(.in(x_pc), .out(m_pc), .we(1'b1), .clk(clk), .gwe(gwe), .rst(rst));
    Nbit_reg #(2, 2'h2) m_stall_reg(.in(x_stall), .out(m_stall), .we(1'b1), .clk(clk), .gwe(gwe), .rst(rst));
    Nbit_reg #(16, 16'b0) m_alu_output_reg(.in(x_alu), .out(m_alu), .we(1'b1), .clk(clk), .gwe(gwe), .rst(rst));
    Nbit_reg #(3, 3'b0) m_nzp_reg(.in(x_nzp), .out(m_nzp), .we(1'b1), .clk(clk), .gwe(gwe), .rst(rst));
-   Nbit_reg #(16, 16'b0) m_pc_plus_one_reg(.in(x_pc_plus_one), .out(m_pc_plus_one), .we(1'b1), .clk(clk), .gwe(gwe), .rst(rst));
-   Nbit_reg #(16)      m_rt_data_reg(.in(x_rt), .out(m_rt), .we(1'b1), .clk(clk), .gwe(gwe), .rst(rst));
+   Nbit_reg #(16, 16'b0) m_pc_plus_one_reg(.in(m_pc_plus_one_default), .out(m_pc_plus_one), .we(1'b1), .clk(clk), .gwe(gwe), .rst(rst));
+   Nbit_reg #(16)      m_rt_data_reg(.in(mx_bypass_rt), .out(m_rt), .we(1'b1), .clk(clk), .gwe(gwe), .rst(rst));
    // Included decoded signals
    Nbit_reg #(16, 16'b0) m_insn_reg(.in(x_insn), .out(m_insn), .we(1'b1), .clk(clk), .gwe(gwe), .rst(rst));
    Nbit_reg #(3, 3'b0) m_r2sel_reg(.in(x_r2sel), .out(m_r2sel), .we(1'b1), .clk(clk), .gwe(gwe), .rst(rst)); 
@@ -247,10 +268,11 @@ module lc4_processor
    Nbit_reg #(1)       m_is_store_reg(.in(x_is_store), .out(m_is_store), .we(1'b1), .clk(clk), .gwe(gwe), .rst(rst));                     
 
 
+
    // Bypassing
    wire wm_bypass_rt;
-   wire [15: 0] wm_rt;
-   assign wm_bypass_rt = w_regfile_we && (m_is_store && m_r2sel == w_wsel); //Load, Store
+   wire [15:0] wm_rt;
+   assign wm_bypass_rt = w_regfile_we && m_is_store && m_r2sel == w_wsel; // Load, Store
    assign wm_rt = wm_bypass_rt ? w_wdata : m_rt;
 
    // Set output signals
@@ -288,7 +310,16 @@ module lc4_processor
    Nbit_reg #(1, 16'b0) w_dmem_we_reg(.in(o_dmem_we), .out(w_dmem_we), .we(1'b1), .clk(clk), .gwe(gwe), .rst(rst));
    Nbit_reg #(16, 16'b0) w_cur_dmem_data_reg(.in(i_cur_dmem_data), .out(w_cur_dmem_data), .we(1'b1), .clk(clk), .gwe(gwe), .rst(rst));
 
-   assign w_wdata = w_is_load ? w_cur_dmem_data :(w_select_pc_plus_one ? w_pc_plus_one : w_alu);
+   assign w_wdata = w_is_load ? w_cur_dmem_data : (w_select_pc_plus_one ? w_pc_plus_one : w_alu);
+
+   wire [2:0] w_nzp_update;
+   
+   wire w_neg, w_zero, w_pos;
+   assign w_neg = w_wdata[15];
+   assign w_zero = w_wdata == 16'b0;
+   assign w_pos = !neg & !zero;
+   assign w_nzp_update = (w_is_load && w_nzp_we) ? {w_neg, w_zero, w_pos} : w_nzp;
+
 
    // TESTBENCH SIGNALS
 
@@ -298,12 +329,11 @@ module lc4_processor
    assign test_regfile_wsel = w_wsel;
    assign test_regfile_data = w_regfile_we ? w_wdata : 16'b0;
    assign test_nzp_we = w_nzp_we;
-   assign test_nzp_new_bits = w_nzp;
+   assign test_nzp_new_bits = w_is_load ? w_nzp_update : w_nzp;
    assign test_dmem_we = w_dmem_we;
    assign test_dmem_addr = w_dmem_addr;
    assign test_dmem_data = w_is_store ? w_dmem_towrite : (w_is_load ? w_cur_dmem_data : 16'b0);
    assign test_stall = w_stall;
-
 
    /* Add $display(...) calls in the always block below to
     * print out debug information at the end of every cycle.
@@ -316,17 +346,9 @@ module lc4_processor
     */
 `ifndef NDEBUG
    always @(posedge gwe) begin
-      $display("%d PC: %h, Instruction: %h", $time, o_cur_pc, i_cur_insn);
-      $display("%d Instructions: %h, %h, %h, %h, %h", $time, f_insn, d_insn, x_insn, m_insn, w_insn);
-      $display("%d PCs: %h, %h, %h, %h, %h", $time, f_pc, d_pc, x_pc, m_pc, w_pc);
-      $display("%d Stalls: %h, %h, %h, %h, %h", $time, f_stall, d_stall, x_stall, m_stall, w_stall);
-      $display("%d regfile we: __, %h, %h, %h, %h", $time, d_regfile_we, x_regfile_we, m_regfile_we, w_regfile_we);
-      $display("%d regfile_reg: __, %h, %h, %h, %h", $time, d_wsel, x_wsel, m_wsel, w_wsel);
-      $display("%d nzp: __, __, __, %h, %h, %h", $time, x_nzp, m_nzp, w_nzp);
-      $display("%d select PC plus 1: __, %h, %h, %h, %h", $time, d_select_pc_plus_one, x_select_pc_plus_one, m_select_pc_plus_one, w_select_pc_plus_one);
-      $display("%d alu: __, __, %h, %h, %h", $time, x_alu, m_alu, w_alu);
-      $display("%d is not stall from load: %h", $time, is_not_stall_from_load);
-      $display("%d ALU Inputs: %h %h %h %h %h", $time, x_insn, x_pc, mx_bypass_rs, mx_bypass_rt, x_alu);
+      $display("NZP IS %d %d %d", x_nzp, m_nzp, w_nzp);
+      $display("x_wdata %d %d %d %d %d %d %d %d", x_is_load, i_cur_dmem_data, x_select_pc_plus_one, x_is_control_insn, w_pc_plus_one, x_pc_plus_one, x_alu, x_wdata);
+      $display("select pc + 1 %d %d %d", d_select_pc_plus_one, x_select_pc_plus_one_default, x_select_pc_plus_one);
 
       // Start each $display() format string with a %d argument for time
       // it will make the output easier to read.  Use %b, %h, and %d
