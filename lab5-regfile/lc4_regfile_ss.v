@@ -3,6 +3,8 @@
 // Prevent implicit wire declaration
 `default_nettype none
 
+`include "register.v"
+
 /* 8-register, n-bit register file with
  * four read ports and two write ports
  * to support two pipes.
@@ -39,6 +41,58 @@ module lc4_regfile_ss #(parameter n = 16)
     input  wire          i_rd_we_B   // pipe B: write enable
     );
 
-   /*** TODO: Your Code Here ***/
+   // make 8 output wires; one for each reg
+    wire [n-1:0] regs [7:0];
+
+    genvar i;
+    for (i = 0; i < 8; i = i + 1) begin
+        Nbit_reg #(n) r(
+            .in((i_rd_we_B & i == i_rd_B) ? i_wdata_B : i_wdata_A),
+            .out(regs[i]),
+            .clk(clk),
+            .we((i_rd_we_A & i == i_rd_A) | (i_rd_we_B & i == i_rd_B)),
+            .gwe(gwe),
+            .rst(rst)
+        );
+    end
+
+    //Bypassed output
+    assign o_rs_data_A = (i_rd_we_B & i_rs_A == i_rd_B) ? i_wdata_B : ((i_rd_we_A & i_rs_A == i_rd_A) ? i_wdata_A : regs[i_rs_A]);
+    assign o_rt_data_A = (i_rd_we_B & i_rt_A == i_rd_B) ? i_wdata_B : ((i_rd_we_A & i_rt_A == i_rd_A) ? i_wdata_A : regs[i_rt_A]);
+    assign o_rs_data_B = (i_rd_we_B & i_rs_B == i_rd_B) ? i_wdata_B : ((i_rd_we_A & i_rs_B == i_rd_A) ? i_wdata_A : regs[i_rs_B]);
+    assign o_rt_data_B = (i_rd_we_B & i_rt_B == i_rd_B) ? i_wdata_B : ((i_rd_we_A & i_rt_B == i_rd_A) ? i_wdata_A : regs[i_rt_B]);
+
+endmodule
+
+module lc4_regfile #(parameter n = 16)
+   (input  wire         clk,
+    input  wire         gwe,
+    input  wire         rst,
+    input  wire [  2:0] i_rs,      // rs selector
+    output wire [n-1:0] o_rs_data, // rs contents
+    input  wire [  2:0] i_rt,      // rt selector
+    output wire [n-1:0] o_rt_data, // rt contents
+    input  wire [  2:0] i_rd,      // rd selector
+    input  wire [n-1:0] i_wdata,   // data to write
+    input  wire         i_rd_we    // write enable
+    );
+
+    // make 8 output wires; one for each reg
+    wire [n-1:0] regs [7:0];
+
+    genvar i;
+    for (i = 0; i < 8; i = i + 1) begin
+        Nbit_reg #(n) r(
+            .in(i_wdata),
+            .out(regs[i]),
+            .clk(clk),
+            .we(i_rd_we & (i == i_rd)),
+            .gwe(gwe),
+            .rst(rst)
+        );
+    end
+
+    assign o_rs_data = regs[i_rs];
+    assign o_rt_data = regs[i_rt];
 
 endmodule
