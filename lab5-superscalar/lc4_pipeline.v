@@ -3,12 +3,12 @@
     Nate Rush: narush
 */
 
-`include "./lc4_alu.v"
-
 `timescale 1ns / 1ps
 
 // disable implicit wire declaration
 `default_nettype none
+
+`include "lc4_alu.v"
 
 module nzp_unit(
    input wire [15:0] i_wdata,
@@ -65,7 +65,7 @@ module lc4_processor
     output wire [7:0]  led_data // Which Zedboard LEDs should be turned on?
     );
       
-    // By default, assign LEDs to display switch inputs to avoid warnings about
+   // By default, assign LEDs to display switch inputs to avoid warnings about
    // disconnected ports. Feel free to use this for debugging input/output if
    // you desire.
    assign led_data = switch_data;
