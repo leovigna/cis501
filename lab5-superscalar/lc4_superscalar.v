@@ -59,6 +59,7 @@ module lc4_processor(input wire         clk,             // main clock
 
    wire f_we;
    wire [15:0]   next_pc, f_pc; 
+   wire stall;
 
    // Stall variables
    wire D_LTU_A_BR, D_LTU_A_A, D_LTU_A_ST_A, D_LTU_A_B, D_LTU_A_ST_B, D_LTU_A;
@@ -141,9 +142,11 @@ module lc4_processor(input wire         clk,             // main clock
    assign f_insn_A = took_branch_either ? 16'd0 : (D_LTU_B || D_B_D_A || DATA) ? d_insn_B : i_cur_insn_A;
    assign f_stall_A = took_branch_either ? 2'd2 : 2'd0;
 
-   assign f_pc_B = (D_LTU_B || D_B_D_A || DATA) ? f_pc : x_pc_plus_one_A;
+   assign f_pc_B = (D_LTU_B || D_B_D_A || DATA) ? f_pc : m_pc_plus_one_default_A;
    assign f_insn_B = took_branch_either ? 16'd0 : (D_LTU_B || D_B_D_A || DATA) ? i_cur_insn_A : i_cur_insn_B;
-   assign f_stall_B = took_branch_either ? 2'h2 : 2'd0;
+   assign f_stall_B = took_branch_either ? 2'd2 : 2'd0;
+
+
 
 
    /*************** DECODE STAGE A ***************/
@@ -200,11 +203,12 @@ module lc4_processor(input wire         clk,             // main clock
    assign D_LTU_A_BR = (x_is_load_A && d_is_branch_A && !x_nzp_we_B) || (x_is_load_B && d_is_branch_A);
    // within pipe A (from X.A to D.A)
    assign D_LTU_A_A = x_is_load_A && ((x_wsel_A == d_r1sel_A && d_r1re_A) || (x_wsel_A == d_r2sel_A && d_r2re_A)) && !x_regfile_we_B;
-   assign D_LTU_A_ST_A = D_LTU_A_A && !(d_is_store_B && x_wsel_A != d_r1sel_A && x_wsel_A == d_r2sel_A);
+   assign D_LTU_A_ST_A = D_LTU_A_A && !(d_is_store_A && x_wsel_A != d_r1sel_A && x_wsel_A == d_r2sel_A);
    // or between pipes (from X.B to D.A)
    assign D_LTU_A_B = x_is_load_B && ((x_wsel_B == d_r1sel_A && d_r1re_A) || (x_wsel_B == d_r2sel_A && d_r2re_A));           
-   assign D_LTU_A_ST_B = D_LTU_A_B && !(d_is_store_B && x_wsel_B != d_r1sel_A && x_wsel_B == d_r2sel_A);
+   assign D_LTU_A_ST_B = D_LTU_A_B && !(d_is_store_A && x_wsel_B != d_r1sel_A && x_wsel_B == d_r2sel_A);
    assign D_LTU_A = D_LTU_A_BR || D_LTU_A_A || D_LTU_A_B || D_LTU_A_ST_A || D_LTU_A_ST_B;
+      
 
    // (2). Load-to-use dependence with dest = D.B
    assign D_LTU_B_BR = (x_is_load_A && d_is_branch_B) || (x_is_load_B && d_is_branch_B);
@@ -216,16 +220,17 @@ module lc4_processor(input wire         clk,             // main clock
    assign D_LTU_B_ST_B = D_LTU_B_B && !(d_is_store_B && x_wsel_B != d_r1sel_B && x_wsel_B == d_r2sel_B);     
    assign D_LTU_B = D_LTU_B_BR || D_LTU_B_A || D_LTU_B_B || D_LTU_B_ST_A || D_LTU_B_ST_B;
 
+
    // 3. Dependence from D.A to D.B (including the case where D.A is a load)
    assign D_B_D_A = !d_is_store_B && d_regfile_we_A && 
                   (d_is_branch_B || d_wsel_A == d_r1sel_B && d_r1re_B || d_wsel_A == d_r2sel_B && d_r2re_B);
 
+
    // (4). Structural hazard (both D.A and D.B access memory)
    assign DATA = (d_is_store_A || d_is_load_A) && (d_is_store_B || d_is_load_B);
 
-   wire stall;
-   assign stall = D_LTU_A || D_LTU_B || D_B_D_A || DATA;
 
+   assign stall = D_LTU_A || D_LTU_B || D_B_D_A || DATA;
 
 
    lc4_regfile_ss r(
@@ -290,6 +295,7 @@ module lc4_processor(input wire         clk,             // main clock
    Nbit_reg #(1, 1'b0) x_is_branch_reg_A(.in(x_is_branch_default_A), .out(x_is_branch_A), .we(1'b1), .clk(clk), .gwe(gwe), .rst(rst));
    Nbit_reg #(1, 1'b0) x_is_control_insn_reg_A(.in(x_is_control_insn_default_A), .out(x_is_control_insn_A), .we(1'b1), .clk(clk), .gwe(gwe), .rst(rst));
 
+
    // Bypasses for A
    wire [15: 0] mx_bypass_rs_A, mx_bypass_rt_A, wx_bypass_rs_A, wx_bypass_rt_A;
 
@@ -298,7 +304,6 @@ module lc4_processor(input wire         clk,             // main clock
    
    assign mx_bypass_rs_A = x_r1sel_A == m_wsel_B && m_regfile_we_B ? m_alu_B : (x_r1sel_A == m_wsel_A && m_regfile_we_A ? m_alu_A : wx_bypass_rs_A);
    assign mx_bypass_rt_A = x_r2sel_A == m_wsel_B && m_regfile_we_B ? m_alu_B : (x_r2sel_A == m_wsel_A && m_regfile_we_A ? m_alu_A : wx_bypass_rt_A);
-
 
    // Increment PC
    cla16 c_A(.a(f_pc_A), .b(16'b0), .cin(1'b1), .sum(x_pc_plus_one_A));
@@ -315,10 +320,8 @@ module lc4_processor(input wire         clk,             // main clock
    // put the correct data in the wdata pipe
    assign x_wdata_A = x_is_load_A ? i_cur_dmem_data : (x_select_pc_plus_one_A ? m_pc_plus_one_default_A : x_alu_A);
 
-
    wire [2:0] old_nzp;
    assign old_nzp = m_nzp_we_B ? m_nzp_B : (m_nzp_we_A ? m_nzp_A : (w_nzp_we_B ? w_nzp_B : w_nzp_A));
-
 
    // NZP updating
    wire neg_A, zero_A, pos_A;
@@ -332,7 +335,7 @@ module lc4_processor(input wire         clk,             // main clock
    // We use the x_nzp_B here as it is the most up-to-date NZP value.
    assign nzp_result_A = ((x_nzp_B[0] == x_insn_A[9] && x_nzp_B[0]) || (x_nzp_B[1] == x_insn_A[10] && x_nzp_B[1]) || (x_nzp_B[2] == x_insn_A[11] && x_nzp_B[2]));
    assign took_branch_A = (x_is_branch_A && nzp_result_A) || x_is_control_insn_A;
-   assign next_pc_A = took_branch_A ? x_alu_A : x_pc_plus_one_A;
+   assign next_pc_A = took_branch_A ? x_alu_A : m_pc_plus_one_default_A;
 
    /*************** EXECUTE STAGE B ***************/
 
@@ -356,7 +359,6 @@ module lc4_processor(input wire         clk,             // main clock
    assign x_is_control_insn_default_B = zero_default_B ? 1'b0 : d_is_control_insn_B;
    assign x_stall_default_B = took_branch_either ? 2'd2 : ((D_LTU_A || D_B_D_A || DATA) ? 2'h1 : D_LTU_B ? 2'h3 : d_stall_B);
 
-
    // Registers for execute stage
    Nbit_reg #(16, 16'h8200) x_pc_reg_B(.in(d_pc_B), .out(x_pc_B), .we(1'b1), .clk(clk), .gwe(gwe), .rst(rst));
    Nbit_reg #(2, 2'h2) x_stall_reg_B(.in(x_stall_default_B), .out(x_stall_B), .we(1'b1), .clk(clk), .gwe(gwe), .rst(rst));
@@ -374,6 +376,7 @@ module lc4_processor(input wire         clk,             // main clock
    Nbit_reg #(1, 1'b0) x_is_store_reg_B(.in(x_is_store_default_B), .out(x_is_store_B), .we(1'b1), .clk(clk), .gwe(gwe), .rst(rst));
    Nbit_reg #(1, 1'b0) x_is_branch_reg_B(.in(x_is_branch_default_B), .out(x_is_branch_B), .we(1'b1), .clk(clk), .gwe(gwe), .rst(rst));
    Nbit_reg #(1, 1'b0) x_is_control_insn_reg_B(.in(x_is_control_insn_default_B), .out(x_is_control_insn_B), .we(1'b1), .clk(clk), .gwe(gwe), .rst(rst));
+
 
    // Bypasses
    wire [15: 0] mx_bypass_rs_B, mx_bypass_rt_B, wx_bypass_rs_B, wx_bypass_rt_B;
@@ -406,11 +409,13 @@ module lc4_processor(input wire         clk,             // main clock
    assign pos_B = !neg_B & !zero_B;
    assign x_nzp_B = (!x_is_load_B && x_nzp_we_B) ? {neg_B, zero_B, pos_B} : x_nzp_A;
 
+
    // Branch, if we need to, and remember if we branched
    wire nzp_result_B; 
    assign nzp_result_B = ((x_nzp_B[0] == x_insn_B[9] && x_nzp_B[0]) || (x_nzp_B[1] == x_insn_B[10] && x_nzp_B[1]) || (x_nzp_B[2] == x_insn_B[11] && x_nzp_B[2]));
-   assign took_branch_B = (x_is_branch_B && nzp_result_B) || x_is_control_insn_B;
-   assign next_pc_B = took_branch_B ? x_alu_B : x_pc_plus_one_B;
+   assign took_branch_B = !took_branch_A && ((x_is_branch_B && nzp_result_B) || x_is_control_insn_B);
+   assign next_pc_B = took_branch_B ? x_alu_B : m_pc_plus_one_default_B;
+
 
    // Note if we took either branch
    wire took_branch_either;
@@ -418,6 +423,8 @@ module lc4_processor(input wire         clk,             // main clock
 
    // pick the next pc
    assign next_pc =  took_branch_A ? x_alu_A : (took_branch_B ? x_alu_B : (stall ? m_pc_plus_one_default_A : m_pc_plus_one_default_B));
+
+
 
    /*************** MEMORY STAGE A ***************/
 
@@ -454,7 +461,6 @@ module lc4_processor(input wire         clk,             // main clock
    assign wm_rt_A = m_is_store_B && w_regfile_we_B && m_r2sel_B == w_wsel_B ? w_alu_B : (m_is_store_B && w_regfile_we_A && m_r2sel_B == w_wsel_A ? w_alu_A : m_rt_A);
 
 
-
    // We pass through values for output signals
    wire is_memory_op_A;
    assign is_memory_op_A = m_is_store_A || m_is_load_A;
@@ -463,6 +469,7 @@ module lc4_processor(input wire         clk,             // main clock
    assign m_dmem_towrite_A = m_is_store_A ? wm_rt_A : 16'b0;
    assign m_cur_dmem_data_A = m_is_load_A ? i_cur_dmem_data : 16'b0;
    assign m_dmem_we_A = m_is_store_A;
+
 
    /*************** MEMORY STAGE B ***************/
 
@@ -489,6 +496,7 @@ module lc4_processor(input wire         clk,             // main clock
    assign m_select_pc_plus_one_default_B = took_branch_A ? 1'd0 : x_select_pc_plus_one_B;
    assign m_is_load_default_B = took_branch_A ? 1'd0 : x_is_load_B;
    assign m_is_store_default_B = took_branch_A ? 1'd0 : x_is_store_B;
+
 
    // Registers for the memory stage
    Nbit_reg #(16, 16'b0) m_pc_reg_B(.in(x_pc_B), .out(m_pc_B), .we(1'b1), .clk(clk), .gwe(gwe), .rst(rst));
@@ -518,7 +526,6 @@ module lc4_processor(input wire         clk,             // main clock
                         m_is_store_B && w_regfile_we_A && m_r2sel_B == w_wsel_A ? w_alu_A :
                         m_rt_B;
 
-   
    // We pass through some values for output signals
    wire is_memory_op_B;
    assign is_memory_op_B = m_is_store_B || m_is_load_B;
@@ -527,6 +534,7 @@ module lc4_processor(input wire         clk,             // main clock
    assign m_dmem_towrite_B = m_is_store_B ? wm_rt_B : 16'b0;
    assign m_cur_dmem_data_B = m_is_load_B ? i_cur_dmem_data : 16'b0;
    assign m_dmem_we_B = m_is_store_B;
+
 
    /*************** WRITEBACK STAGE A ***************/
    wire [15:0] w_dmem_addr_A, w_dmem_towrite_A, w_cur_dmem_data_A;
@@ -550,8 +558,7 @@ module lc4_processor(input wire         clk,             // main clock
    Nbit_reg #(16, 16'b0) w_dmem_addr_reg_A(.in(m_dmem_addr_A), .out(w_dmem_addr_A), .we(1'b1), .clk(clk), .gwe(gwe), .rst(rst));
    Nbit_reg #(16, 16'b0) w_dmem_towrite_reg_A(.in(m_dmem_towrite_A), .out(w_dmem_towrite_A), .we(1'b1), .clk(clk), .gwe(gwe), .rst(rst));
    Nbit_reg #(1, 16'b0) w_dmem_we_reg_A(.in(m_dmem_we_A), .out(w_dmem_we_A), .we(1'b1), .clk(clk), .gwe(gwe), .rst(rst));
-   Nbit_reg #(16, 16'b0) w_cur_dmem_data_reg_A(.in(m_cur_dmem_data_A), .out(w_cur_dmem_data_A), .we(1'b1), .clk(clk), .gwe(gwe), .rst(rst));
-
+   Nbit_reg #(16, 16'b0) w_cur_dmem_data_reg_A(.in(m_cur_dmem_data_A), .out(w_cur_dmem_data_A), .we(1'b1), .clk(clk), .gwe(gwe), .rst(rst));   
 
    assign w_wdata_A = w_is_load_A ? w_cur_dmem_data_A : (w_select_pc_plus_one_A ? w_pc_plus_one_A : w_alu_A);
 
@@ -587,6 +594,7 @@ module lc4_processor(input wire         clk,             // main clock
    Nbit_reg #(1, 16'b0) w_dmem_we_reg_B(.in(m_dmem_we_B), .out(w_dmem_we_B), .we(1'b1), .clk(clk), .gwe(gwe), .rst(rst));
    Nbit_reg #(16, 16'b0) w_cur_dmem_data_reg_B(.in(m_cur_dmem_data_B), .out(w_cur_dmem_data_B), .we(1'b1), .clk(clk), .gwe(gwe), .rst(rst));
 
+
    assign w_wdata_B = w_is_load_B ? w_cur_dmem_data_B : (w_select_pc_plus_one_B ? w_pc_plus_one_B : w_alu_B);
 
    wire [2:0] w_nzp_update_B;
@@ -595,11 +603,10 @@ module lc4_processor(input wire         clk,             // main clock
    assign w_neg_B = w_wdata_B[15];
    assign w_zero_B = w_wdata_B == 16'b0;
    assign w_pos_B = !neg_B & !zero_B;
-   assign w_nzp_update_B = (w_is_load_B && w_nzp_we_B) ? {w_neg_B, w_zero_B, w_pos_B} : w_nzp_B;
+   assign w_nzp_update_B = (w_is_load_B && w_nzp_we_B) ? {w_neg_B, w_zero_B, w_pos_B} : ((w_is_load_A && w_nzp_we_A) ? {w_neg_A, w_zero_A, w_pos_A} : w_nzp_B);
 
 
-
-/*************** TESTBENCH SIGNALS A ***************/
+   /*************** TESTBENCH SIGNALS A ***************/
    assign test_cur_pc_A = w_pc_A;
    assign test_cur_insn_A = w_insn_A;
    assign test_regfile_we_A = w_regfile_we_A;
@@ -626,9 +633,9 @@ module lc4_processor(input wire         clk,             // main clock
    assign test_stall_B = w_stall_B;
 
    assign o_cur_pc = f_pc;
-   assign o_dmem_addr = is_memory_op_A ? m_alu_A : is_memory_op_B ? m_alu_B : 16'd0;
+   assign o_dmem_addr = is_memory_op_A ? m_alu_A : (is_memory_op_B ? m_alu_B : 16'd0);
    assign o_dmem_we = m_is_store_A || m_is_store_B;      // Data memory write enable
-   assign o_dmem_towrite = m_is_store_A ? wm_rt_A : m_is_store_B ? wm_rt_B : 16'b0;
+   assign o_dmem_towrite = m_is_store_A ? wm_rt_A : m_is_store_B ? m_dmem_addr_B : 16'b0;
 
 `ifndef NDEBUG
    always @(posedge gwe) begin
